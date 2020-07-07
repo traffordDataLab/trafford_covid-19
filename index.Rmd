@@ -100,7 +100,7 @@ Last updated: `r format(Sys.time(), '%H:%M, %d %B %Y')`
 ```{r, dev = 'svg'}
 rolling_cases <- cases %>% 
   filter(area_name == "Trafford") %>% 
-  mutate(ma_cases = rollmean(new_cases, 14, align = "left", fill = NA)) 
+  mutate(ma_cases = rollmean(new_cases, 14, align = "center", fill = NA)) 
 
     div(class = "subtitle",
         div(class = "title", "Daily confirmed cases"),
