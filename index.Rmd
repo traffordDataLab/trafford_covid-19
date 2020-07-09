@@ -163,6 +163,42 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 <div class = "col-sm-6">
 <div class = "graphic-div">
 ```{r, dev = 'svg'}
+# Daily vs total confirmed cases
+trajectory <- cases %>% 
+  filter(area_name == "Trafford") %>% 
+  arrange(date) %>% 
+  mutate(cum_cases = cumsum(new_cases),
+         ma_new_cases = rollmean(new_cases, 14, align = "center", fill = NA),
+         ma_cum_cases = rollmean(cum_cases, 14, align = "center", fill = NA))
+
+div(class = "subtitle",
+        div(class = "title", "Daily versus total confirmed cases"),
+         paste("14-day moving average, to", format(max(trajectory$date), '%d %B %Y')))
+
+max_x <- ceiling(log10(max(trajectory$ma_cum_cases, na.rm = TRUE)))
+max_y <- ceiling(log10(max(trajectory$ma_new_cases, na.rm = TRUE)))
+
+trajectory %>% 
+  filter(new_cases > 0) %>%
+  ggplot(aes(x = ma_cum_cases, y = ma_new_cases)) +
+  geom_line(colour = "#39809E", size = 1) +
+  scale_x_log10(breaks = 10^(seq(0, max_x, length.out = max_x + 1)), labels = comma_format(accuracy = 1)) +
+  scale_y_log10(breaks = 10^(seq(0, max_y, length.out = max_y + 1)), position = "right") +
+  labs(x = "Total confirmed cases", y = "Daily confirmed cases", title = NULL, subtitle = NULL, caption = NULL) +
+  theme_minimal(base_size = 20, base_family = "Lato") +
+  theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title.x = element_text(size = 12, hjust = 0, margin = margin(t = 10)),
+        axis.title.y.right = element_text(size = 12, angle = 0, vjust = 1, margin = margin(l = -2)))
+
+    div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+```
+</div>
+</div>
+
+<div class = "col-sm-6">
+```{r, dev = 'svg'}
 # rolling 14-day rate of cases
 rolling_rate <- cases %>% 
   filter(area_name %in% c("Trafford", "Greater Manchester", "England")) %>%
@@ -200,7 +236,9 @@ ggplot(data = rolling_rate, aes(x = date, y = ma_rate, group = area_name)) +
 </div>
 </div>
 
-<div class = "col-sm-6">
+<div class = "row">
+<div class = "col-sm-12">
+<div class = "graphic-div">
 ```{r table}
 # confirmed cases within last 14 days
 recent_cases <- cases %>% 
