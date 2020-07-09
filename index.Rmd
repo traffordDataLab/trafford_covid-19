@@ -173,7 +173,7 @@ trajectory <- cases %>%
 
 div(class = "subtitle",
         div(class = "title", "Daily versus total confirmed cases"),
-         paste("14-day moving average, to", format(max(trajectory$date), '%d %B %Y')))
+         paste("14-day moving average on log scale, to", format(max(trajectory$date), '%d %B %Y')))
 
 max_x <- ceiling(log10(max(trajectory$ma_cum_cases, na.rm = TRUE)))
 max_y <- ceiling(log10(max(trajectory$ma_new_cases, na.rm = TRUE)))
