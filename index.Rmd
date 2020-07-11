@@ -49,7 +49,7 @@ cases <- read_csv("https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cas
 ```{css}
 @import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
 
-.graphic-div {
+.div {
   font-family: 'Lato', sans-serif;
 }
 
@@ -96,7 +96,7 @@ Last updated: `r format(Sys.time(), '%H:%M, %d %B %Y')`
 <div class="container-fluid">
 <div class="row">
 <div class = "col-sm-6">
-<div class = "graphic-div">
+<div class = "div">
 ```{r, dev = 'svg'}
 rolling_cases <- cases %>% 
   filter(area_name == "Trafford") %>% 
@@ -129,7 +129,7 @@ ggplot() +
 </div>
   
 <div class = "col-sm-6">
-<div class = "graphic-div">
+<div class = "div">
 ```{r, dev = 'svg'}
 total_cases <- cases %>% 
   filter(area_name == "Trafford") %>% 
@@ -161,7 +161,7 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 
 <div class = "row">
 <div class = "col-sm-6">
-<div class = "graphic-div">
+<div class = "div">
 ```{r, dev = 'svg'}
 # Daily vs total confirmed cases
 trajectory <- cases %>% 
@@ -173,7 +173,7 @@ trajectory <- cases %>%
 
 div(class = "subtitle",
         div(class = "title", "Daily versus total confirmed cases"),
-         paste("14-day moving average on log scale, to", format(max(trajectory$date), '%d %B %Y')))
+         paste("Trafford, 14-day moving average, to", format(max(trajectory$date), '%d %B %Y')))
 
 max_x <- ceiling(log10(max(trajectory$ma_cum_cases, na.rm = TRUE)))
 max_y <- ceiling(log10(max(trajectory$ma_new_cases, na.rm = TRUE)))
@@ -184,7 +184,7 @@ trajectory %>%
   geom_line(colour = "#39809E", size = 1) +
   scale_x_log10(breaks = 10^(seq(0, max_x, length.out = max_x + 1)), labels = comma_format(accuracy = 1)) +
   scale_y_log10(breaks = 10^(seq(0, max_y, length.out = max_y + 1)), position = "right") +
-  labs(x = "Total confirmed cases", y = "Daily confirmed cases", title = NULL, subtitle = NULL, caption = NULL) +
+  labs(x = "Total confirmed cases (log)", y = "Daily confirmed cases (log)", title = NULL, subtitle = NULL, caption = NULL) +
   theme_minimal(base_size = 20, base_family = "Lato") +
   theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
         panel.grid.major.x = element_blank(),
@@ -238,7 +238,7 @@ ggplot(data = rolling_rate, aes(x = date, y = ma_rate, group = area_name)) +
 
 <div class = "row">
 <div class = "col-sm-12">
-<div class = "graphic-div">
+<div class = "div">
 ```{r table}
 # confirmed cases within last 14 days
 recent_cases <- cases %>% 
@@ -283,7 +283,7 @@ tbl <- reactable(recent_cases,
                                    }))
 )
 
-div(class = "graphic-div",
+div(class = "div",
     div(class = "subtitle",
         div(class = "title", "New confirmed cases in the last 14 days"),
         paste("to", format(max(cases$date), '%d %B %Y'))
