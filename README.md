@@ -1,5 +1,5 @@
 <h3>trafford_COVID-19</h3>
-<p>Data visualisations and analysis relating to confirmed cases of coronavirus in Trafford.</p>
+<p>Trend in confirmed coronavirus cases in Trafford.</p>
 <img src="screenshot.png" width="50%">
     <strong>Data sources</strong>
     <ul>
