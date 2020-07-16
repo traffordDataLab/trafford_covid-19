@@ -1,6 +1,7 @@
 ---
 pagetitle: "COVID-19 cases in Trafford"
 output: html_document
+runtime: shiny
 ---
 
 ```{r setup, include = FALSE}
@@ -90,7 +91,6 @@ cases <- read_csv("https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cas
 ```
 
 ## Confirmed cases of coronavirus in Trafford
-Last updated: `r format(Sys.time(), '%H:%M, %d %B %Y')`
 
 <br />
 <div class="container-fluid">
