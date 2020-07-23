@@ -90,7 +90,7 @@ wards <- st_read(paste0("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/re
   select(area_name = WD19NM, lon = LONG, lat = LAT)
 
 leaflet(data = msoa_cases) %>%
-  addTiles(urlTemplate = "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | <a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a> | Data: <a href="https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases" target="_blank">Public Health England</a>') %>% 
+  addTiles(urlTemplate = "", attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | <a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a> | Data: <a href="https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases" target="_blank">Public Health England</a>') %>% 
   addPolylines(data = wards, fill = "transparent", stroke = TRUE, weight = 1, color = "#000000", opacity = 1) %>% 
   addPolygons(fillColor = ~pal(total_cases), fillOpacity = 0.6, smoothFactor = 0.5, stroke = FALSE,
               label = ~msoa11_hclnm, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto"), 
@@ -98,4 +98,6 @@ leaflet(data = msoa_cases) %>%
   addLabelOnlyMarkers(data = wards, lng = ~lon, lat = ~lat, label = ~as.character(area_name), labelOptions = labelOptions(noHide = T, textOnly = T, direction = "auto", style = list("color" = "white", "text-shadow" = "-1px -1px 10px #757575, 1px -1px 10px #757575, 1px 1px 10px #757575, -1px 1px 10px #757575"))) %>% 
   addLegend(pal = pal, values = ~total_cases, opacity = 0.7, title = "Confirmed cases", position = "bottomright") %>% 
   addControl(paste0("<strong>Total confirmed coronavirus cases</strong><br/><em>", unique(msoa_cases$lad19_nm), ", to week ending ", format(as.Date(max(cases$date)), "%d %B"), "</em>"), position = 'topright') %>% 
-  onRender(paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
+  onRender(
+    "function(el, t) {var myMap = this;myMap._container.style['background'] = '#ffffff';}",
+    paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
