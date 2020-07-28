@@ -273,31 +273,30 @@ ggplot(data = rolling_rate, aes(x = date, y = ma_rate, group = area_name)) +
 <div class = "col-sm-12">
 <div class = "div">
 ```{r map}
-# weekly cases by MSOA
+# weekly infection rate by MSOA
 msoa_cases <- left_join(msoa, weekly_cases, by = "msoa11cd") %>% 
-  mutate(popup = str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/><strong>", n, "</strong> cases<br/>", format(unique(.$date)-days(6), "%d %B"), " - ", format(unique(.$date), "%d %B")) %>% map(HTML))
+  mutate(rate = round(n/population*100000,1),
+         popup = str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/><strong>", rate, "</strong> cases per 100,000<br/>", format(unique(.$date)-days(6), "%d %B"), " - ", format(unique(.$date), "%d %B")) %>% map(HTML))
 
 # calculate class intervals for choropleth map
-breaks <- classIntervals(msoa_cases[msoa_cases$n > 0, ]$n, n = 5, style = "jenks")$brks
+breaks <- classIntervals(msoa_cases[msoa_cases$rate > 0, ]$rate, n = 5, style = "jenks")$brks
 pal <- colorBin(palette = "PuBu", domain = NULL, bins = breaks, na.color = "#D7D8D7")
 
-# title
 div(class = "subtitle",
-        div(class = "title", "Confirmed coronavirus cases by local area"),
+        div(class = "title", "Rate of confirmed cases by local area"),
         paste("Greater Manchester,", format(unique(msoa_cases$date)-days(6), "%d %B"), " - ", format(unique(msoa_cases$date), "%d %B")))
 
 # create map
-leaflet(data = filter(msoa_cases, n != 0), width = "100%") %>%
+leaflet(data = filter(msoa_cases, rate != 0), width = "100%") %>%
   addTiles(urlTemplate = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | <a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a>') %>%
   setView(-2.35533522781156, 53.419025498197, zoom = 11) %>% 
-  addPolygons(data = filter(msoa_cases, n == 0), fillColor = "#FFFFFF", fillOpacity = 0.8, smoothFactor = 1, stroke = TRUE, weight = 0.5, color = "#bdbdbd", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto"), highlightOptions = highlightOptions(color = "#212121", weight = 2, bringToFront = TRUE)) %>% 
-  addPolygons(fillColor = ~pal(n), fillOpacity = 0.5, smoothFactor = 0.8, stroke = TRUE, weight = 1, color = "#bdbdbd", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto"), highlightOptions = highlightOptions(color = "#212121", weight = 2, bringToFront = TRUE)) %>%
-  addLegend(pal = pal, values = ~n, opacity = 0.7, title = "Number of cases", position = "bottomright") %>%
+  addPolygons(data = filter(msoa_cases, rate == 0), fillColor = "#FFFFFF", fillOpacity = 0.8, smoothFactor = 1, stroke = TRUE, weight = 0.5, color = "#bdbdbd", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto"), highlightOptions = highlightOptions(color = "#212121", weight = 2, bringToFront = TRUE)) %>% 
+  addPolygons(fillColor = ~pal(rate), fillOpacity = 0.5, smoothFactor = 0.8, stroke = TRUE, weight = 1, color = "#bdbdbd", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto"), highlightOptions = highlightOptions(color = "#212121", weight = 2, bringToFront = TRUE)) %>%
+  addLegend(pal = pal, values = ~rate, opacity = 0.7, title = "Cases per 100,000", position = "bottomright") %>%
   onRender(
     paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
 
-# source
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank")))
+div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank"), " | ", a("Office for National Statistics", href = 'https://www.nomisweb.co.uk/datasets/pestsyoaoa', target = "_blank")))
 ```
 </div>
 </div>
