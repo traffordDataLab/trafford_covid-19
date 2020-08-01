@@ -405,26 +405,24 @@ ggplot() +
   annotate("text", x = max(weekly_cases$rate)*0.6, y = 5, label = "High and rising", size = 7, hjust = 0, colour = "#757575") +
   annotate("text", x = max(weekly_cases$rate)*0.6, y = 0.4, label = "High and falling", size = 7, hjust = 0, colour = "#757575") +
   scale_x_continuous(expand = c(0.005, 0.005),
-                     breaks = seq(0, max(weekly_cases$rate), 5),
-                     labels = seq(0, max(weekly_cases$rate), 5),
+                     breaks = seq(0, max(weekly_cases$rate), 2),
+                     labels = seq(0, max(weekly_cases$rate), 2),
                      limits = c(0, max(weekly_cases$rate))) +
   scale_y_log10(expand = c(0.005, 0.005),
                 breaks = c(0.25, 0.5, 1, 2, 4, 8),
                 labels = paste(c(0.25, 0.5, 1, 2, 4, 8), "x"),
                 limits = c(0.2, 10),
                 position = "right") +
-  labs(x = "New cases per 100k people", y = "Week-on-week change in cases",
+  labs(x = "New cases per 100k people", y = "Week-on-week\nchange in cases",
        title = NULL, subtitle = NULL, caption = NULL) +
   theme_minimal(base_size = 20, base_family = "Lato") +
   theme(panel.grid.major = element_line(colour = "#bdbdbd"),
         panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 18, face = "bold"),
-        plot.subtitle = element_text(size = 15, margin = margin(b = 20)),
-        plot.caption = element_text(size = 10, colour = "grey60"),
-        axis.title.x = element_text(size = 12, hjust = 0, margin = margin(t = 10)),
-        axis.title.y = element_text(size = 12, hjust = 0),
+        axis.title.x = element_text(hjust = 0, margin = margin(t = 10)),
+        axis.title.y = element_text(hjust = 0),
         legend.position = "none",
-        axis.text = element_text(face = "bold")) +
+        axis.text = element_text(face = "bold"),
+        axis.title.y.right = element_text(angle = 0, vjust = 1, margin = margin(l = 5))) +
   coord_cartesian(clip = "off")
 
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank"), "| Credits: ", a("@jburnmurdoch", href = 'https://twitter.com/jburnmurdoch/status/1288500620496908288', target = "_blank")))
