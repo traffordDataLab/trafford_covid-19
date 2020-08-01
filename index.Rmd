@@ -392,12 +392,12 @@ ggplot() +
   geom_hline(yintercept = 1, size = 1, colour = "#333333") +
   geom_point(data = filter(weekly_cases, !area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale", "Trafford", "Salford", "Stockport", "Tameside", "Wigan")), aes(x = rate, y = change, size = population), shape = 21, fill = "#bdbdbd", colour = "#757575", alpha = 0.5) +
   geom_point(data = filter(weekly_cases, area_name == "Trafford"), 
-             aes(rate, y = change, size = population), shape = 21, fill = "#39809E", colour = "#000000") +
+             aes(rate, y = change, size = population), shape = 21, fill = "#00AFBB", colour = "#000000") +
   geom_text_repel(data = filter(weekly_cases, area_name == "Trafford"), 
                   aes(rate, y = change, label = area_name), size = 4, point.padding = 0.5) +
   # other GM local authorities
   geom_point(data = filter(weekly_cases, area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Wigan")), 
-             aes(rate, y = change, size = population), shape = 21, fill = "#39809E", colour = "#000000") +
+             aes(rate, y = change, size = population), shape = 21, fill = "#E7B800", colour = "#000000") +
   geom_text_repel(data = filter(weekly_cases, area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Wigan")),
                   aes(rate, y = change, label = area_name), size = 4, point.padding = 0.5) +
   annotate("text", x = max(weekly_cases$rate)*0.1, y = 5, label = "Low and rising", size = 7, hjust = 0, colour = "#757575") +
@@ -415,7 +415,7 @@ ggplot() +
                 position = "right") +
   labs(x = "New cases per 100k people", y = "Week-on-week change in cases",
        title = NULL, subtitle = NULL, caption = NULL) +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 20, base_family = "Lato") +
   theme(panel.grid.major = element_line(colour = "#bdbdbd"),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 18, face = "bold"),
@@ -423,7 +423,8 @@ ggplot() +
         plot.caption = element_text(size = 10, colour = "grey60"),
         axis.title.x = element_text(size = 12, hjust = 0, margin = margin(t = 10)),
         axis.title.y = element_text(size = 12, hjust = 0),
-        legend.position = "none") +
+        legend.position = "none",
+        axis.text = element_text(face = "bold")) +
   coord_cartesian(clip = "off")
 
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank"), "| Credits: ", a("@jburnmurdoch", href = 'https://twitter.com/jburnmurdoch/status/1288500620496908288', target = "_blank")))
