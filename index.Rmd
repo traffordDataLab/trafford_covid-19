@@ -248,6 +248,7 @@ trajectory %>%
 </div>
 
 <div class = "col-sm-6">
+<div class = "div">
 ```{r, dev = 'svg'}
 # rolling 14-day rate of cases
 rolling_rate <- cases %>% 
