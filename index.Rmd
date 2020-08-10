@@ -84,7 +84,7 @@ msoa_cases <- read_xlsx(tmp, sheet = 2, skip = 8) %>%
   select(lad19nm = `Local authority district name`,
          msoa11cd = `MSOA code`,
          msoa11hclnm = `House of Commons Library MSOA Name`,
-         tail(names(.), 1)) %>% 
+         ncol(.)-1) %>% 
   pivot_longer(-c(lad19nm, msoa11cd, msoa11hclnm), 
                names_to = "week", 
                names_pattern = "wk_(.*)", 
