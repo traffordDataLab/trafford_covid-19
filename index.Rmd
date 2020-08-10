@@ -18,7 +18,7 @@ population <- read_csv("data/population.csv")
 raw <- read_csv("https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv")
 
 cases <- raw %>% 
-  filter(`Area type` %in% c("Nation", "ltla"),
+  filter(`Area type` %in% c("nation", "ltla"),
          `Area name` %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale", "Salford", "Stockport", "Tameside", "Trafford", "Wigan", "England")) %>% 
   mutate(date = as.Date(`Specimen date`, format = "%Y-%m-%d")) %>% 
   select(date,
