@@ -73,17 +73,17 @@ msoa <- st_read("data/msoa.geojson")
 
 # Weekly confirmed cases by MSOA
 # Source: Public Health England
-# URL: https://coronavirus-staging.data.gov.uk/cases
+# URL: https://coronavirus.data.gov.uk/
 
 tmp <- tempfile(fileext = ".xlsx")
 GET(url = "https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.xlsx",
     write_disk(tmp))
 
-msoa_cases <- read_xlsx(tmp, sheet = 2, skip = 8) %>% 
-  filter(`MSOA code` %in% msoa$msoa11cd) %>% 
-  select(lad19nm = `Local authority district name`,
-         msoa11cd = `MSOA code`,
-         msoa11hclnm = `House of Commons Library MSOA Name`,
+msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.csv") %>% 
+  filter(msoa11_cd %in% msoa$msoa11cd) %>% 
+  select(lad19nm = lad19_nm,
+         msoa11cd = msoa11_cd,
+         msoa11hclnm = msoa11_hclnm,
          ncol(.)-1) %>% 
   pivot_longer(-c(lad19nm, msoa11cd, msoa11hclnm), 
                names_to = "week", 
@@ -91,7 +91,6 @@ msoa_cases <- read_xlsx(tmp, sheet = 2, skip = 8) %>%
                values_to = "n") %>% 
   mutate(week = parse_number(week),
          date = ymd("2019-12-29") + weeks(week),
-         n = na_if(n, ".."),
          n = replace_na(n, 0),
          n = as.integer(n)) %>% 
   relocate(n, .after = last_col())
@@ -349,9 +348,29 @@ tbl <- reactable(daily_incidence,
                  columns = list(
                    area_name = colDef(name = "Name"),
                    seven_day = colDef(name = "7-day moving average",
+                                      style = function(value) {
+                                        if (value > 7.1) {
+                                          color <- "#FF0000"
+                                          } else if (value > 3.5) {
+                                            color <- "#FFC000"
+                                            } else {
+                                              color <- "#B4DE86"
+                                              }
+                                        list(background = color)
+                                        },
                                       align = "left"),
                    fourteen_day = colDef(name = "14-day moving average",
-                                         align = "left")
+                                         style = function(value) {
+                                        if (value > 7.1) {
+                                          color <- "#FF0000"
+                                          } else if (value > 3.5) {
+                                            color <- "#FFC000"
+                                            } else {
+                                              color <- "#B4DE86"
+                                              }
+                                        list(background = color)
+                                        },
+                                      align = "left")
                    )
                  )
 
