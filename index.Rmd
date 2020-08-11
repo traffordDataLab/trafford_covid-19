@@ -324,53 +324,41 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 <div class = "col-sm-12">
 <div class = "div">
 ```{r table}
-# confirmed cases within last 14 days
-recent_cases <- cases %>% 
-  filter(date >= max(date) - days(14)) %>% 
-  group_by(area_code, area_name) %>% 
-  summarise(date = max(date),
-            recent_cases = sum(new_cases)) %>%
-  ungroup() %>% 
+# daily incidence rate
+daily_incidence <- cases %>% 
+  # exclude incomplete cases
+  filter(date <= max(date)-days(5)) %>% 
+  arrange(area_name, date) %>%
   left_join(population, by = "area_code") %>% 
-  mutate(area_name = fct_relevel(factor(area_name), "Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Trafford", "Wigan", "Greater Manchester", "England"),
-         recent_rate = round(recent_cases/population*100000,1),
-         recent_cases = as.integer(recent_cases),
-         population = as.integer(population)) %>% 
-  select(date, area_name, recent_cases, population, recent_rate) %>% 
-  arrange(area_name) %>% 
-  select(-date)
+  mutate(rate = round(new_cases/population*100000,1), 
+         seven_day = round(rollmean(rate, 7, align = "right", fill = NA),1),
+         fourteen_day = round(rollmean(rate, 14, align = "right", fill = NA),1)) %>% 
+  filter(date == max(date)) %>% 
+  select(area_name, seven_day, fourteen_day) %>% 
+  mutate(area_name = fct_relevel(factor(area_name), "Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Trafford", "Wigan", "Greater Manchester", "England")) %>%
+  arrange(area_name)
 
-palette <- function(x) rgb(colorRamp(c("#e6eff3", "#39809e"))(x), maxColorValue = 255)
-
-tbl <- reactable(recent_cases,
-          class = "tbl",
-          compact = TRUE,
-          fullWidth = TRUE,
-          pagination = FALSE,
-          wrap = FALSE,
-          resizable = TRUE,
-          defaultColDef = colDef(headerClass = "header", align = "left"),
-          columns = list(
-            area_name = colDef(name = "Name"),
-            recent_cases = colDef(name = "Total cases",
-                                  format = colFormat(separators = TRUE),
-                                  align = "left"),
-            population = colDef(name = "Population",
-                                format = colFormat(separators = TRUE),
-                                align = "left"),
-            recent_rate = colDef(name = "Rate per 100,000",
-                                 align = "left",
-                                 style = function(value) {
-                                   normalized <- (value - min(recent_cases$recent_rate)) / (max(recent_cases$recent_rate) - min(recent_cases$recent_rate))
-                                   color <- palette(normalized)
-                                   list(background = color)
-                                   }))
-)
+tbl <- reactable(daily_incidence,
+                 class = "tbl",
+                 compact = TRUE,
+                 fullWidth = TRUE,
+                 pagination = FALSE,
+                 wrap = FALSE,
+                 resizable = TRUE,
+                 defaultColDef = colDef(headerClass = "header", align = "left"),
+                 columns = list(
+                   area_name = colDef(name = "Name"),
+                   seven_day = colDef(name = "7-day moving average",
+                                      align = "left"),
+                   fourteen_day = colDef(name = "14-day moving average",
+                                         align = "left")
+                   )
+                 )
 
 div(class = "div",
     div(class = "subtitle",
-        div(class = "title", "New confirmed cases in the last 14 days"),
-        paste("to", format(max(cases$date), '%d %B %Y'))
+        div(class = "title", "Daily incidence per 100,000 population"),
+        paste("to", format(max(cases$date)-days(5), '%d %B %Y'))
         ),
     tbl,
     div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
