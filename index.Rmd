@@ -75,6 +75,8 @@ msoa <- st_read("data/msoa.geojson")
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/
 
+# Using last 7 days of complete cases
+
 tmp <- tempfile(fileext = ".xlsx")
 GET(url = "https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.xlsx",
     write_disk(tmp))
@@ -84,14 +86,8 @@ msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOA
   select(lad19nm = lad19_nm,
          msoa11cd = msoa11_cd,
          msoa11hclnm = msoa11_hclnm,
-         ncol(.)-1) %>% 
-  pivot_longer(-c(lad19nm, msoa11cd, msoa11hclnm), 
-               names_to = "week", 
-               names_pattern = "wk_(.*)", 
-               values_to = "n") %>% 
-  mutate(week = parse_number(week),
-         date = ymd("2019-12-29") + weeks(week),
-         n = replace_na(n, 0),
+         n = tail(names(.), 1)) %>% 
+  mutate(n = replace_na(n, 0),
          n = as.integer(n)) %>% 
   relocate(n, .after = last_col())
 ```
@@ -293,7 +289,7 @@ ggplot(data = rolling_rate, aes(x = date, y = ma_rate, group = area_name)) +
 # weekly infection rate by MSOA
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
   mutate(rate = round(n/population*100000,1),
-         popup = str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/><strong>", rate, "</strong> cases per 100,000<br/>", format(unique(.$date)-days(6), "%d %B"), " - ", format(unique(.$date), "%d %B")) %>% map(HTML))
+         popup = str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/><strong>", rate, "</strong> cases per 100,000") %>% map(HTML))
 
 # calculate class intervals for choropleth map
 breaks <- classIntervals(local_cases[local_cases$rate > 0, ]$rate, n = 5, style = "jenks")$brks
@@ -301,7 +297,7 @@ pal <- colorBin(palette = "PuBu", domain = NULL, bins = breaks, na.color = "#D7D
 
 div(class = "subtitle",
         div(class = "title", "Rate of confirmed cases by local area"),
-        paste("Greater Manchester,", format(unique(local_cases$date)-days(6), "%d %B"), " - ", format(unique(local_cases$date), "%d %B")))
+        paste("Greater Manchester, week ending ", format(Sys.Date() - days(5), "%d %B")))
 
 # create map
 leaflet(data = filter(local_cases, rate != 0), width = "100%") %>%
