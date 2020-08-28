@@ -290,15 +290,12 @@ ggplot(data = rolling_rate, aes(x = date, y = ma_rate, group = area_name)) +
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
   mutate(rate = round(n/population*100000,1),
          popup = str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/><strong>", rate, "</strong> cases per 100,000") %>% map(HTML))
-
 # calculate class intervals for choropleth map
 breaks <- classIntervals(local_cases[local_cases$rate > 0, ]$rate, n = 5, style = "jenks")$brks
 pal <- colorBin(palette = "PuBu", domain = NULL, bins = breaks, na.color = "#D7D8D7")
-
 div(class = "subtitle",
         div(class = "title", "Rate of confirmed cases by local area"),
         paste("Greater Manchester, week ending ", format(Sys.Date() - days(5), "%d %B")))
-
 # create map
 leaflet(data = filter(local_cases, rate != 0), width = "100%") %>%
   addTiles(urlTemplate = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | <a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a>') %>%
@@ -308,7 +305,6 @@ leaflet(data = filter(local_cases, rate != 0), width = "100%") %>%
   addLegend(pal = pal, values = ~rate, opacity = 0.7, title = "Cases per 100,000", position = "bottomright") %>%
   onRender(
     paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
-
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank"), " | ", a("Office for National Statistics", href = 'https://www.nomisweb.co.uk/datasets/pestsyoaoa', target = "_blank")))
 ```
 </div>
@@ -343,30 +339,8 @@ tbl <- reactable(daily_incidence,
                  defaultColDef = colDef(headerClass = "header", align = "left"),
                  columns = list(
                    area_name = colDef(name = "Name"),
-                   seven_day = colDef(name = "7-day moving average",
-                                      style = function(value) {
-                                        if (value > 7.1) {
-                                          color <- "#FF0000"
-                                          } else if (value > 3.5) {
-                                            color <- "#FFC000"
-                                            } else {
-                                              color <- "#B4DE86"
-                                              }
-                                        list(background = color)
-                                        },
-                                      align = "left"),
-                   fourteen_day = colDef(name = "14-day moving average",
-                                         style = function(value) {
-                                        if (value > 7.1) {
-                                          color <- "#FF0000"
-                                          } else if (value > 3.5) {
-                                            color <- "#FFC000"
-                                            } else {
-                                              color <- "#B4DE86"
-                                              }
-                                        list(background = color)
-                                        },
-                                      align = "left")
+                   seven_day = colDef(name = "7-day moving average", align = "left"),
+                   fourteen_day = colDef(name = "14-day moving average", align = "left")
                    )
                  )
 
