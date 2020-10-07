@@ -33,25 +33,45 @@ ca_country_population <- read_xls(tmp, sheet = 6, skip = 4) %>%
 bind_rows(ltla_population, ca_country_population) %>% 
   write_csv("population.csv")
 
-# MSOAs in Greater Manchester
+# Trafford local authority boundary
 
 # Source: Open Geography Portal
-# URL: https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-boundaries-ew-bsc
+# URL: https://geoportal.statistics.gov.uk/datasets/local-authority-districts-may-2020-boundaries-uk-bgc-1
 # Licence: OGL 3.0
 
-msoa <- st_read("https://opendata.arcgis.com/datasets/87aa4eb6393644768a5f85929cc704c2_0.geojson") %>% 
-  filter(str_detect(MSOA11NM, "Bolton|Bury|Manchester|Oldham|Rochdale|Salford|Stockport|Tameside|Trafford|Wigan")) %>%
-  select(msoa11cd = MSOA11CD, msoa11nm = MSOA11NM)
+st_read("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Local_Authority_Districts_May_2020_UK_BGC_V3/FeatureServer/0/query?where=LAD20NM%20%3D%20'TRAFFORD'&outFields=LAD20CD,LAD20NM&outSR=4326&f=geojson") %>% 
+  select(lad20cd = LAD20CD, lad20nm = LAD20NM) %>% 
+  st_write("la.geojson")
 
-# Mid-2018 population estimates by MSOA
+# MSOAs in Trafford
+
+# Source: Open Geography Portal
+# URL: https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-boundaries-ew-bgc
+# Licence: OGL 3.0
+
+msoa <- st_read("https://opendata.arcgis.com/datasets/1e6f162967de4f3da92040761e8464d8_0.geojson") %>% 
+  filter(str_detect(MSOA11NM, "Trafford")) %>%
+  # correct invalid polygon geometry
+  st_buffer(dist = 0) %>% 
+  mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+         lat = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
+  select(msoa11cd = MSOA11CD, msoa11nm = MSOA11NM, lon, lat)
+
+# Dissolve into local authority boundary
+msoa %>% 
+  st_union() %>% 
+  st_write("la.geojson")
+
+# Mid-2019 population estimates by MSOA
 
 # Source: Nomis / ONS
 # URL: https://www.nomisweb.co.uk/datasets/pestsyoaoa
 # Licence: OGL 3.0
 
-population <- read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2010_1.data.csv?geography=1245709240...1245709350,1245715048,1245715058...1245715063,1245709351...1245709382,1245715006,1245709383...1245709577&date=latest&gender=0&c_age=200&measures=20100&select=date_name,geography_name,geography_code,gender_name,c_age_name,measures_name,obs_value,obs_status_name") %>% 
+population <- read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2010_1.data.csv?geography=1245709510...1245709537&date=latest&gender=0&c_age=200&measures=20100&select=date_name,geography_name,geography_code,gender_name,c_age_name,measures_name,obs_value,obs_status_name") %>% 
   select(msoa11cd = GEOGRAPHY_CODE, population = OBS_VALUE) 
 
-left_join(msoa, population, by = "msoa11cd") %>%
+left_join(msoa, population, by = "msoa11cd") %>% 
+  select(msoa11cd, msoa11nm, population, lon, lat) %>% 
   st_write("msoa.geojson")
   
