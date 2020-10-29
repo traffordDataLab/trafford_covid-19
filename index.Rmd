@@ -61,14 +61,10 @@ msoa <- st_read("data/msoa.geojson")
 # Using latest 7 days of complete cases
 
 msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.csv") %>% 
-  filter(msoa11_cd %in% msoa$msoa11cd) %>% 
-  select(lad19nm = lad19_nm,
-         msoa11cd = msoa11_cd,
-         msoa11hclnm = msoa11_hclnm,
-         n = tail(names(.), 1)) %>% 
-  mutate(n = ifelse(n == -99, 0, n),
-         n = as.integer(n)) %>% 
-  relocate(n, .after = last_col())
+  filter(areaCode %in% msoa$msoa11cd, date == max(date)) %>% 
+  select(msoa11cd = areaCode, msoa11hclnm = areaName, date, n = newCasesBySpecimenDateRollingSum, rate = newCasesBySpecimenDateRollingRate) %>% 
+  mutate(n = replace_na(n, 0),
+         rate = replace_na(rate, 0))
 ```
 
 ```{css}
@@ -181,21 +177,21 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
   mutate(popup = ifelse(n == 0,
                         str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/>Data suppressed") %>% map(HTML),
-                        str_c("<strong>", msoa11hclnm, "</strong><br/><strong>", n, "</strong> cases") %>% map(HTML)))
+                        str_c("<strong>", msoa11hclnm, "</strong><br/><strong>", n, "</strong> cases<br/><strong>", rate, "</strong> per 100,000") %>% map(HTML)))
 
 div(class = "subtitle",
     div(class = "title", "Confirmed cases by MSOA"),
-    "Trafford, latest 7 days where near-complete data are available")
+    "Trafford, week ending", format(unique(msoa_cases$date), '%d %B'))
 
 # create map
 bbox <- as.vector(st_bbox(local_cases))
 
 leaflet(data = local_cases, width = "100%", options = leafletOptions(zoomControl = FALSE)) %>%
   setMaxBounds(bbox[1], bbox[2], bbox[3], bbox[4]) %>%
-  addTiles(urlTemplate = "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | <a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
-  addPolygons(data = la, fillColor = "transparent", stroke = TRUE, weight = 1, color = "#bdbdbd", opacity = 1) %>% 
-  addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 1, weight = 1, color = "#FFFFFF", opacity = 1) %>%
-  addPolygons(fillColor = "transparent", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE)) %>%
+  addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2020)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
+  addPolygons(fillColor = "transparent", weight = 1, color = "#757575", opacity = 1) %>% 
+    addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 0.7, weight = 1, color = "#FFFFFF", opacity = 1) %>%
+    addPolygons(fillColor = "transparent", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE)) %>%
   onRender("function(el, t) {var myMap = this;myMap._container.style['background'] = '#ffffff';}", paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
 
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank")))
@@ -223,10 +219,9 @@ weekly_incidence <- cases %>%
   left_join(population, by = "area_code") %>% 
   mutate(previous_week_rate = round(previous_week/population*100000,1),
          current_week_rate = round(current_week/population*100000,1),
-         change = current_week-previous_week,
-         change_rate = round(change/population*100000,1)) %>% 
+         percent_change = (current_week_rate-previous_week_rate)/previous_week_rate) %>% 
   ungroup() %>%
-  select(area_name, previous_week_rate, current_week_rate, change_rate)
+  select(area_name, previous_week_rate, current_week_rate, percent_change)
 
 tbl <- reactable(weekly_incidence, 
           defaultPageSize = 12,
@@ -236,7 +231,7 @@ tbl <- reactable(weekly_incidence,
           borderless = FALSE,
           wrap = FALSE,
           resizable = TRUE,
-          defaultSorted = "current_week_rate",
+          defaultSorted = "percent_change",
           defaultSortOrder = "desc",
           defaultColDef = colDef(align = "left"),
           rowClass = function(index) {if (weekly_incidence[index, "area_name"] %in% c("Trafford", "Greater Manchester", "England")) {"row_bold"}},
@@ -246,7 +241,7 @@ tbl <- reactable(weekly_incidence,
                                         align = "left"),
             current_week_rate = colDef(header = paste(format(max(cases$date)-days(8),'%d %b'),"-", format(max(cases$date)-days(2),'%d %b')), 
                                        align = "left"),
-            change_rate = colDef(name = "Change", align = "left"))
+            percent_change = colDef(name = "% change", format = colFormat(percent = TRUE, digits = 1), align = "left"))
 )
 
 div(class = "div",
