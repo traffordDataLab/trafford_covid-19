@@ -74,4 +74,18 @@ population <- read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2010_1.data
 left_join(msoa, population, by = "msoa11cd") %>% 
   select(msoa11cd, msoa11nm, population, lon, lat) %>% 
   st_write("msoa.geojson")
-  
+
+# Mid-2019 population estimates for Trafford
+# Source: Nomis
+# URL: https://www.nomisweb.co.uk/datasets/pestsyoala
+
+read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2002_1.data.csv?geography=1811939363&date=latest&gender=0&c_age=101...191&measures=20100&select=date_name,geography_name,geography_code,gender_name,c_age_name,measures_name,obs_value,obs_status_name") %>% 
+  select(age = C_AGE_NAME, n = OBS_VALUE) %>% 
+  mutate(age = parse_number(age),
+         ageband = cut(age,
+                       breaks = c(0,15,30,45,60,75,120),
+                       labels = c("0-14","15-29","30-44","45-59","60-74","75+"),
+                       right = FALSE)) %>% 
+  group_by(ageband) %>% 
+  summarise(population = sum(n)) %>% 
+  write_csv("trafford_population.csv")

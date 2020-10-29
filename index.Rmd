@@ -7,14 +7,23 @@ runtime: shiny
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
-library(tidyverse) ; library(httr) ; library(readxl) ;   library(lubridate) ; library(RcppRoll) ; library(reactable) ; library(zoo) ; library(ggtext) ; library(scales) ; library(shiny) ; library(ggrepel) ; library(sf) ; library(leaflet) ; library(htmlwidgets) ; library(htmltools)
+library(tidyverse) ; library(httr) ; library(readxl) ;   library(lubridate) ; library(RcppRoll) ; library(reactable) ; library(zoo) ; library(scales) ; library(shiny) ; library(ggrepel) ; library(sf) ; library(leaflet) ; library(htmlwidgets) ; library(htmltools) ; library(ggsci)
 
-# Mid-2019 population estimates
+# Mid-2019 population estimates for local authorities in England
 population <- read_csv("data/population.csv")
+
+# Mid-2019 population estimates for Trafford
+trafford_population <- read_csv("data/trafford_population.csv")
+
+# Trafford local authority boundary
+la <- st_read("data/la.geojson")
+
+# MSOAs within Trafford
+msoa <- st_read("data/msoa.geojson")
 
 # Confirmed cases
 # Source: Public Health England
-# URL: https://coronavirus.data.gov.uk
+# URL: https://coronavirus.data.gov.uk/about-data#legacy-csv-downloads
 raw <- read_csv("https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv")
 
 cases <- raw %>% 
@@ -40,31 +49,40 @@ cases <- raw %>%
                 new_cases = sum(new_cases))
     )
 
-# ------------------------------------------------------------------------------
-
-# Trafford local authority boundary
-# Source: ONS Open Geography Portal
-# URL: https://geoportal.statistics.gov.uk
-
-la <- st_read("data/la.geojson")
-
-# MSOAs within Trafford
-# Source: ONS Open Geography Portal
-# URL: https://geoportal.statistics.gov.uk
-
-msoa <- st_read("data/msoa.geojson")
-
-# Weekly confirmed cases by MSOA
+# Cases by MSOA
 # Source: Public Health England
-# URL: https://coronavirus.data.gov.uk/
-
-# Using latest 7 days of complete cases
-
+# URL: https://coronavirus.data.gov.uk/about-data#cases-by-middle-super-output-area-msoa
 msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.csv") %>% 
   filter(areaCode %in% msoa$msoa11cd, date == max(date)) %>% 
   select(msoa11cd = areaCode, msoa11hclnm = areaName, date, n = newCasesBySpecimenDateRollingSum, rate = newCasesBySpecimenDateRollingRate) %>% 
   mutate(n = replace_na(n, 0),
          rate = replace_na(rate, 0))
+
+# Cases by age
+# Source: Public Health England
+# URL: https://coronavirus.data.gov.uk/about-data#cases-by-age
+age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demographic/cases/specimen_date-latest.csv") %>% 
+  filter(areaType == "ltla", areaName == "Trafford") %>% 
+  select(date, 5:23) %>% 
+  pivot_longer(cols = -date, names_to = "ageband", values_to = "n") %>% 
+  mutate(ageband = case_when(
+    ageband %in% c("0_4", "5_9", "10_14") ~ "0-14",
+    ageband %in% c("15_19", "20_24", "25_29") ~ "15-29",
+    ageband %in% c("30_34", "35_39", "40_44") ~ "30-44",
+    ageband %in% c("45_49", "50_54", "55_59") ~ "45-59",
+    ageband %in% c("60_64", "65_69", "70_74") ~ "60-74",
+    ageband %in% c("75_79", "80_84", "85_89", "90+") ~ "75+"
+  )) %>% 
+  group_by(date, ageband) %>% 
+  summarise(n = sum(n)) %>% 
+  ungroup() %>% 
+  left_join(trafford_population, by = "ageband") %>% 
+  mutate(rate = round(n/population*100000,1)) %>% 
+  group_by(ageband) %>% 
+  arrange(date) %>% 
+  mutate(rolling_average = rollmean(rate, 7, align = "right", fill = NA)) %>% 
+  filter(date >= max(date)-weeks(4)) %>% 
+  mutate(label = if_else(date == max(date), as.character(ageband), NA_character_))
 ```
 
 ```{css}
@@ -108,6 +126,7 @@ msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOA
 <div class = "col-sm-6">
 <div class = "div">
 ```{r, dev = 'svg'}
+# Daily confirmed cases
 rolling_cases <- cases %>% 
   filter(area_name == "Trafford", date <= max(date)-days(2)) %>% 
   mutate(ma_cases = rollmean(new_cases, 7, align = "center", fill = NA)) 
@@ -142,6 +161,7 @@ ggplot() +
 <div class = "col-sm-6">
 <div class = "div">
 ```{r, dev = 'svg'}
+# Cumulative cases
 total_cases <- cases %>% 
   filter(area_name == "Trafford", date <= max(date)-days(2)) %>% 
   arrange(date) %>% 
@@ -170,10 +190,10 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 </div>
 
 <div class = "row">
-<div class = "col-sm-12">
+<div class = "col-sm-6">
 <div class = "div">
 ```{r}
-# weekly case count by MSOA
+# Cases by MSOA
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
   mutate(popup = ifelse(n == 0,
                         str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/>Data suppressed") %>% map(HTML),
@@ -183,7 +203,6 @@ div(class = "subtitle",
     div(class = "title", "Confirmed cases by MSOA"),
     "Trafford, week ending", format(unique(msoa_cases$date), '%d %B'))
 
-# create map
 bbox <- as.vector(st_bbox(local_cases))
 
 leaflet(data = local_cases, width = "100%", options = leafletOptions(zoomControl = FALSE)) %>%
@@ -198,13 +217,42 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 ```
 </div>
 </div>
+
+<div class = "col-sm-6">
+<div class = "div">
+```{r, dev = "svg"}
+# Cases by age
+div(class = "subtitle",
+    div(class = "title", "Age-specific case rates per 100,000"),
+    paste("Trafford, 7-day moving average"))
+
+ggplot(age_specific_cases, aes(x = date, y = rolling_average, colour = ageband)) +
+  geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
+  geom_line(size = 1, show.legend = FALSE) +
+  geom_text(aes(x = max(date)+0.5, label = label), fontface = "bold", hjust = 0, show.legend = FALSE) +
+  scale_color_startrek() +
+  scale_x_date(breaks = c(min(age_specific_cases$date), median(age_specific_cases$date), max(age_specific_cases$date)), date_labels = "%d %b") +
+  scale_y_continuous(expand = c(0.005, 0.005)) +
+  labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(plot.margin = unit(rep(0.5,4), "cm"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
+        axis.ticks.x = element_line(colour = "#333333", size = 0.5)) +
+  coord_cartesian(clip = "off") 
+
+div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+```
+</div>
+</div>
 </div>
 
 <div class = "row">
 <div class = "col-sm-12">
 <div class = "div">
 ```{r table}
-# weekly incidence rate
+# Weekly incidence rate
 weekly_incidence <- cases %>% 
   mutate(period = case_when(
     date >= max(date)-days(8) & date <= max(date)-days(2) ~ "current_week",
@@ -252,80 +300,6 @@ div(class = "div",
     tbl,
     div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
     )
-```
-</div>
-</div>
-</div>
-
-<div class = "row">
-<div class = "col-sm-12">
-<div class = "div">
-```{r,  fig.width = 12, dev = 'svg'}
-# prevalence and growth
-weekly_cases <- raw %>% 
-  filter(`Area type` == "ltla") %>% 
-  mutate(date = as.Date(`Specimen date`, format = "%Y-%m-%d")) %>% 
-  select(date,
-         area_code = `Area code`,
-         area_name = `Area name`,
-         new_cases = `Daily lab-confirmed cases`) %>% 
-  arrange(date) %>% 
-  group_by(area_code, area_name) %>%
-  complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
-  mutate(new_cases = replace_na(new_cases, 0)) %>% 
-  ungroup() %>% 
-  fill(area_name) %>%
-  left_join(population, by = "area_code") %>% 
-  mutate(rate = round(new_cases/population*100000,1)) %>%  
-  group_by(area_name) %>% 
-  mutate(previous_week = roll_sum(lag(rate, 7), 7, fill = NA, align = "right"),
-         current_week = roll_sum(rate, 7, fill = NA, align = "right"),
-         change = current_week/previous_week) %>% 
-  ungroup() %>% 
-  # include latest 'complete' cases
-  filter(date == max(date)-days(2))
-
-div(class = "subtitle",
-    div(class = "title", "Local prevalence and growth rate in cases"),
-    paste("Local authorities in England, as of", format(max(weekly_cases$date), '%d %B %Y')))
-
-ggplot() +
-  geom_hline(yintercept = 1, size = 1, colour = "#333333") +
-  geom_point(data = filter(weekly_cases, !area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale", "Trafford", "Salford", "Stockport", "Tameside", "Wigan")), aes(x = rate, y = change, size = population), shape = 21, fill = "#bdbdbd", colour = "#757575", alpha = 0.5) +
-  geom_point(data = filter(weekly_cases, area_name == "Trafford"), 
-             aes(rate, y = change, size = population), shape = 21, fill = "#00AFBB", colour = "#000000") +
-  geom_text_repel(data = filter(weekly_cases, area_name == "Trafford"), 
-                  aes(rate, y = change, label = area_name), size = 4, point.padding = 0.5) +
-  # other GM local authorities
-  geom_point(data = filter(weekly_cases, area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Wigan")), 
-             aes(rate, y = change, size = population), shape = 21, fill = "#E7B800", colour = "#000000") +
-  geom_text_repel(data = filter(weekly_cases, area_name %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale",  "Salford", "Stockport", "Tameside", "Wigan")),
-                  aes(rate, y = change, label = area_name), size = 4, point.padding = 0.5) +
-  annotate("text", x = max(weekly_cases$rate)*0.1, y = 5, label = "Low and rising", size = 7, hjust = 0, colour = "#757575") +
-  annotate("text", x = max(weekly_cases$rate)*0.1, y = 0.4, label = "Low and falling", size = 7, hjust = 0, colour = "#757575") +
-  annotate("text", x = max(weekly_cases$rate)*0.6, y = 5, label = "High and rising", size = 7, hjust = 0, colour = "#757575") +
-  annotate("text", x = max(weekly_cases$rate)*0.6, y = 0.4, label = "High and falling", size = 7, hjust = 0, colour = "#757575") +
-  scale_x_continuous(expand = c(0.005, 0.005),
-                     breaks = seq(0, max(weekly_cases$rate), 10),
-                     labels = seq(0, max(weekly_cases$rate), 10),
-                     limits = c(0, max(weekly_cases$rate))) +
-  scale_y_log10(expand = c(0.005, 0.005),
-                breaks = c(0.25, 0.5, 1, 2, 4, 8),
-                labels = paste(c(0.25, 0.5, 1, 2, 4, 8), "x"),
-                limits = c(0.2, 10),
-                position = "right") +
-  labs(x = "New cases per 100k people", y = "Week-on-week\nchange in cases",
-       title = NULL, subtitle = NULL, caption = NULL) +
-  theme_minimal(base_size = 20, base_family = "Lato") +
-  theme(panel.grid.major = element_line(colour = "#bdbdbd"),
-        panel.grid.minor = element_blank(),
-        axis.title.x = element_text(size = 12, hjust = 0, margin = margin(t = 10)),
-        axis.title.y.right = element_text(size = 12, angle = 0, vjust = 1, margin = margin(l = -2)),
-        legend.position = "none",
-        axis.text = element_text(face = "bold")) +
-  coord_cartesian(clip = "off")
-
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank"), "| Credits: ", a("@jburnmurdoch", href = 'https://twitter.com/jburnmurdoch/status/1288500620496908288', target = "_blank")))
 ```
 </div>
 </div>
