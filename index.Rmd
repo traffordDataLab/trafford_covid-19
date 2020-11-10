@@ -61,18 +61,20 @@ msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOA
 # Cases by age
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/about-data#cases-by-age
-age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demographic/cases/specimen_date-latest.csv") %>% 
+age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demographic/cases/specimenDate_ageDemographic-unstacked.csv") %>% 
   filter(areaType == "ltla", areaName == "Trafford") %>% 
-  select(date, 5:23) %>% 
+  select(date, starts_with("newCasesBySpecimenDate-")) %>% 
   pivot_longer(cols = -date, names_to = "ageband", values_to = "n") %>% 
-  mutate(ageband = case_when(
-    ageband %in% c("0_4", "5_9", "10_14") ~ "0-14",
-    ageband %in% c("15_19", "20_24", "25_29") ~ "15-29",
-    ageband %in% c("30_34", "35_39", "40_44") ~ "30-44",
-    ageband %in% c("45_49", "50_54", "55_59") ~ "45-59",
-    ageband %in% c("60_64", "65_69", "70_74") ~ "60-74",
-    ageband %in% c("75_79", "80_84", "85_89", "90+") ~ "75+"
-  )) %>% 
+  filter(!ageband %in% c("newCasesBySpecimenDate-0_59", "newCasesBySpecimenDate-60+", "newCasesBySpecimenDate-unassigned")) %>% 
+  mutate(ageband = str_remove_all(ageband, "newCasesBySpecimenDate-"),
+         ageband = case_when(
+           ageband %in% c("0_4", "5_9", "10_14") ~ "0-14",
+           ageband %in% c("15_19", "20_24", "25_29") ~ "15-29",
+           ageband %in% c("30_34", "35_39", "40_44") ~ "30-44",
+           ageband %in% c("45_49", "50_54", "55_59") ~ "45-59",
+           ageband %in% c("60_64", "65_69", "70_74") ~ "60-74",
+           ageband %in% c("75_79", "80_84", "85_89", "90+") ~ "75+"
+           )) %>% 
   group_by(date, ageband) %>% 
   summarise(n = sum(n)) %>% 
   ungroup() %>% 
