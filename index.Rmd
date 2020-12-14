@@ -51,8 +51,8 @@ cases <- raw %>%
 
 # Cases by MSOA
 # Source: Public Health England
-# URL: https://coronavirus.data.gov.uk/about-data#cases-by-middle-super-output-area-msoa
-msoa_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/msoa_data/MSOAs_latest.csv") %>% 
+# URL: https://coronavirus.data.gov.uk/details/download
+msoa_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=msoa&metric=newCasesBySpecimenDateRollingSum&metric=newCasesBySpecimenDateRollingRate&format=csv") %>% 
   filter(areaCode %in% msoa$msoa11cd, date == max(date)) %>% 
   select(msoa11cd = areaCode, msoa11hclnm = areaName, date, n = newCasesBySpecimenDateRollingSum, rate = newCasesBySpecimenDateRollingRate) %>% 
   mutate(n = replace_na(n, 0),
@@ -198,7 +198,7 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 # Cases by MSOA
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
   mutate(popup = ifelse(n == 0,
-                        str_c("<strong>", msoa11hclnm, "</strong><br/><em>", lad19nm, "</em><br/>Data suppressed") %>% map(HTML),
+                        str_c("<strong>", msoa11hclnm, "</strong><br/>Data suppressed") %>% map(HTML),
                         str_c("<strong>", msoa11hclnm, "</strong><br/><strong>", n, "</strong> cases<br/><strong>", rate, "</strong> per 100,000") %>% map(HTML)))
 
 div(class = "subtitle",
