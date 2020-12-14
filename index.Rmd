@@ -231,7 +231,7 @@ div(class = "subtitle",
 ggplot(age_specific_cases, aes(x = date, y = rolling_average, colour = ageband)) +
   geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
   geom_line(size = 1, show.legend = FALSE) +
-  geom_text(aes(x = max(date)+0.5, label = label), fontface = "bold", hjust = 0, show.legend = FALSE) +
+  geom_text_repel(aes(x = max(date)+1, label = label), fontface = "bold", direction = "y", hjust = 0, segment.color = NA, show.legend = FALSE) +
   scale_color_startrek() +
   scale_x_date(breaks = c(min(age_specific_cases$date), median(age_specific_cases$date), max(age_specific_cases$date)), date_labels = "%d %b") +
   scale_y_continuous(expand = c(0.005, 0.005)) +
