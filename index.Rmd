@@ -95,12 +95,12 @@ positivity_rate <- fromJSON(content(GET(url = 'https://api.coronavirus.data.gov.
   as_tibble() %>% 
   mutate(date = as.Date(date, format = "%Y-%m-%d"))
 
-# Patients in MFT
+# Patients in MFT ### 2021-04-12: TEMPORARILY COMMENTED-OUT DUE TO API NOT RETURNING DATA ###
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/details/download
-hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nhsTrust&areaCode=R0A&metric=hospitalCases&format=csv") %>% 
-  arrange(date) %>% 
-  mutate(ma_cases = rollmean(hospitalCases, 7, align = "center", fill = NA))
+#hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nhsTrust&areaCode=R0A&metric=hospitalCases&format=csv") %>% 
+#  arrange(date) %>% 
+#  mutate(ma_cases = rollmean(hospitalCases, 7, align = "center", fill = NA))
 ```
 
 ```{css}
@@ -298,29 +298,29 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 </div>
 
 <div class = "col-sm-6">
-<div class = "div">
+<!--div class = "div"-->
 ```{r, dev = "svg"}
-# Hospital patients
-div(class = "subtitle",
-    div(class = "title", "COVID-19 patients in hospital"),
-    paste("Manchester University NHS Foundation Trust, 7-day rolling average"))
-
-ggplot() +
-  geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
-  geom_line(data = hospital_cases, aes(x = date, y = ma_cases), size = 1, colour = "#FAAB18") +
-  scale_x_date(breaks = c(min(hospital_cases$date), median(hospital_cases$date), max(hospital_cases$date)), date_labels = "%d-%b") +
-  scale_y_continuous(expand = c(0.005, 0.005), position = "right") +
-  labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
-  theme_minimal(base_size = 20, base_family = "Lato") +
-  theme(plot.margin = unit(rep(0.5,4), "cm"),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
-        axis.ticks.x = element_line(colour = "#333333", size = 0.5))
-
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+# Hospital patients ### 2021-04-12: TEMPORARILY COMMENTED-OUT DUE TO API NOT RETURNING DATA ###
+# div(class = "subtitle",
+#     div(class = "title", "COVID-19 patients in hospital"),
+#     paste("Manchester University NHS Foundation Trust, 7-day rolling average"))
+# 
+# ggplot() +
+#   geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
+#   geom_line(data = hospital_cases, aes(x = date, y = ma_cases), size = 1, colour = "#FAAB18") +
+#   scale_x_date(breaks = c(min(hospital_cases$date), median(hospital_cases$date), max(hospital_cases$date)), date_labels = "%d-%b") +
+#   scale_y_continuous(expand = c(0.005, 0.005), position = "right") +
+#   labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
+#   theme_minimal(base_size = 20, base_family = "Lato") +
+#   theme(plot.margin = unit(rep(0.5,4), "cm"),
+#         panel.grid.major.x = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
+#         axis.ticks.x = element_line(colour = "#333333", size = 0.5))
+# 
+# div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
 ```
-</div>
+<!--/div-->
 </div>
 </div>
 
