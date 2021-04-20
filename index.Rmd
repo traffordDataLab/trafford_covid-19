@@ -55,7 +55,7 @@ cases <- raw %>%
 # URL: https://coronavirus.data.gov.uk/details/download
 
 # Create lookup dataframe for Trafford MSOAs and their House of Commons names, ready to use as a join
-msoa_lookup = read_csv("https://visual.parliament.uk/msoanames/static/MSOA-Names-1.12.csv") %>%
+msoa_lookup = read_csv("https://visual.parliament.uk/msoanames/static/MSOA-Names-Latest.csv") %>%
   filter(Laname == "Trafford") %>%
   select(msoa11cd, msoa11hclnm)
 
@@ -109,7 +109,7 @@ age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demogr
 # Positivity rate
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/details/developers-guide
-positivity_rate <- fromJSON(content(GET(url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=ltla;areaName=trafford&structure={"date":"date","uniqueCasePositivityBySpecimenDateRollingSum":"uniqueCasePositivityBySpecimenDateRollingSum"}', timeout(10)), as = "text"), flatten = TRUE) %>% 
+positivity_rate <- fromJSON(content(GET(url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=ltla;areaName=trafford&structure={"date":"date","uniqueCasePositivityBySpecimenDateRollingSum":"uniqueCasePositivityBySpecimenDateRollingSum"}', timeout(50)), as = "text"), flatten = TRUE) %>% 
   pluck("data") %>% 
   as_tibble() %>% 
   mutate(date = as.Date(date, format = "%Y-%m-%d"))
