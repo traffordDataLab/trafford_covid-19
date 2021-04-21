@@ -89,3 +89,9 @@ read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2002_1.data.csv?geography
   group_by(ageband) %>% 
   summarise(population = sum(n)) %>% 
   write_csv("trafford_population.csv")
+
+# House of Commons Library MSOA Names - uses the static URL to get the latest available
+read_csv("https://visual.parliament.uk/msoanames/static/MSOA-Names-Latest.csv") %>%
+  filter(Laname == "Trafford") %>%
+  select(msoa11cd, msoa11hclnm) %>%
+  write_csv("msoa_names.csv")

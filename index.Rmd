@@ -54,10 +54,8 @@ cases <- raw %>%
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/details/download
 
-# Create lookup dataframe for Trafford MSOAs and their House of Commons names, ready to use as a join
-msoa_lookup = read_csv("https://visual.parliament.uk/msoanames/static/MSOA-Names-Latest.csv") %>%
-  filter(Laname == "Trafford") %>%
-  select(msoa11cd, msoa11hclnm)
+# Create lookup for Trafford MSOAs and their House of Commons Library names, ready to use as a join
+msoa_lookup = read_csv("data/msoa_names.csv")
 
 # The original URL used pulls all data, rather than specifying Trafford only, with the filtering for the Trafford MSOAs and the latest date being done by R:
 # https://api.coronavirus.data.gov.uk/v2/data?areaType=msoa&metric=newCasesBySpecimenDateRollingSum&metric=newCasesBySpecimenDateRollingRate&format=csv
