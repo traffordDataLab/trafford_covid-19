@@ -107,10 +107,22 @@ age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demogr
 # Positivity rate
 # Source: Public Health England
 # URL: https://coronavirus.data.gov.uk/details/developers-guide
-positivity_rate <- fromJSON(content(GET(url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=ltla;areaName=trafford&structure={"date":"date","uniqueCasePositivityBySpecimenDateRollingSum":"uniqueCasePositivityBySpecimenDateRollingSum"}', timeout(50)), as = "text"), flatten = TRUE) %>% 
-  pluck("data") %>% 
-  as_tibble() %>% 
-  mutate(date = as.Date(date, format = "%Y-%m-%d"))
+positivity_rate <- NULL  # in case the API call fails
+
+api_response <- GET(
+  # Call the API and attempt to get the positivity rate data
+  url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=ltla;areaName=trafford&structure={"date":"date","uniqueCasePositivityBySpecimenDateRollingSum":"uniqueCasePositivityBySpecimenDateRollingSum"}',
+  timeout(50)
+)
+
+if (api_response$status_code == 200) {
+  # Only attempt to process the data if there has been a successful response (200).
+  # NOTE: 204 == successful call but no data, so treating that like a 400+ code.
+  positivity_rate <- fromJSON(content(api_response, as = "text"), flatten = TRUE) %>%
+    pluck("data") %>% 
+    as_tibble() %>% 
+    mutate(date = as.Date(date, format = "%Y-%m-%d"))
+}
 
 # Patients in MFT
 # Source: Public Health England
@@ -294,22 +306,27 @@ div(class = "subtitle",
     div(class = "title", "Test positivity rate"),
     paste("Trafford, PCR tests, last 7 days"))
 
-ggplot() +
-  geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
-  geom_line(data = positivity_rate, 
-            aes(date, uniqueCasePositivityBySpecimenDateRollingSum, group = 1),
-            colour = "#756bb1", size = 1) +
-  scale_x_date(breaks = c(min(positivity_rate$date), median(positivity_rate$date), max(positivity_rate$date)), date_labels = "%d-%b") +
-  scale_y_continuous(expand = c(0.005, 0.005), labels = function(x){paste0(x, "%")}, position = "right") +
-  labs(x = "Specimen date", y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
-  theme_minimal(base_size = 20, base_family = "Lato") +
-  theme(plot.margin = unit(rep(0.5,4), "cm"),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
-        axis.ticks.x = element_line(colour = "#333333", size = 0.5))
-
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+if (!is.null(positivity_rate)) {
+  # Need to explicitly print() the ggplot due to being within the if-block
+  print(ggplot() +
+    geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
+    geom_line(data = positivity_rate, 
+              aes(date, uniqueCasePositivityBySpecimenDateRollingSum, group = 1),
+              colour = "#756bb1", size = 1) +
+    scale_x_date(breaks = c(min(positivity_rate$date), median(positivity_rate$date), max(positivity_rate$date)), date_labels = "%d-%b") +
+    scale_y_continuous(expand = c(0.005, 0.005), labels = function(x){paste0(x, "%")}, position = "right") +
+    labs(x = "Specimen date", y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
+    theme_minimal(base_size = 20, base_family = "Lato") +
+    theme(plot.margin = unit(rep(0.5,4), "cm"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
+          axis.ticks.x = element_line(colour = "#333333", size = 0.5)))
+  
+  div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+} else {
+  div(paste("Data currently unavailable"))
+}
 ```
 </div>
 </div>
