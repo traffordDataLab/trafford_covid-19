@@ -146,7 +146,6 @@ hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType
 <div class="container-fluid">
 <div class="row">
 <div class = "col-sm-6">
-<div class = "div">
 ```{r, dev = 'svg'}
 # Daily confirmed cases
 rolling_cases <- cases %>% 
@@ -179,10 +178,8 @@ ggplot() +
     div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
 ```
 </div>
-</div>
   
 <div class = "col-sm-6">
-<div class = "div">
 ```{r, dev = 'svg'}
 # Cumulative cases
 total_cases <- cases %>% 
@@ -211,11 +208,9 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
 ```
 </div>
 </div>
-</div>
 
 <div class = "row">
 <div class = "col-sm-6">
-<div class = "div">
 ```{r}
 # Cases by MSOA
 local_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
@@ -239,10 +234,8 @@ leaflet(data = local_cases, width = "100%", options = leafletOptions(zoomControl
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank")))
 ```
 </div>
-</div>
 
 <div class = "col-sm-6">
-<div class = "div">
 ```{r, dev = "svg"}
 # Cases by age
 div(class = "subtitle",
@@ -269,11 +262,9 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 ```
 </div>
 </div>
-</div>
 
 <div class = "row">
 <div class = "col-sm-6">
-<div class = "div">
 ```{r, dev = "svg"}
 # Positivity rate
 div(class = "subtitle",
@@ -303,10 +294,8 @@ if (!is.null(positivity_rate)) {
 }
 ```
 </div>
-</div>
 
 <div class = "col-sm-6">
-<div class = "div">
 ```{r, dev = "svg"}
 # Hospital patients
 div(class = "subtitle",
@@ -330,11 +319,9 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 ```
 </div>
 </div>
-</div>
 
 <div class = "row">
 <div class = "col-sm-12">
-<div class = "div">
 ```{r table}
 # Weekly incidence rate
 weekly_incidence <- cases %>% 
@@ -384,7 +371,6 @@ div(class = "div",
     div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
     )
 ```
-</div>
 </div>
 </div>
 </div>
