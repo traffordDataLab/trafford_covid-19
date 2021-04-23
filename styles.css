@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+.div {
+  font-family: 'Lato', sans-serif;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.subtitle {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.caption {
+  text-align: right;
+  font-size: 12px;
+  color: #212121;
+}
+
+.tbl {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.row_bold {
+  font-weight: bold;
+}
+
+.leaflet-container
+{
+    background: #fff;
+}

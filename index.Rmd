@@ -1,6 +1,13 @@
 ---
 pagetitle: "COVID-19 cases in Trafford"
-output: html_document
+lang: "en-GB"
+output: 
+  html_document:
+    mathjax: null
+    highlight: null
+    css: styles.css
+    includes:
+      in_header: header.html
 runtime: shiny
 ---
 
@@ -132,40 +139,8 @@ hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType
   mutate(ma_cases = rollmean(hospitalCases, 7, align = "center", fill = NA))
 ```
 
-```{css}
-@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
-
-.div {
-  font-family: 'Lato', sans-serif;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.subtitle {
-  margin: 8px 0;
-  font-size: 14px;
-}
-
-.caption {
-  text-align: right;
-  font-size: 12px;
-  color: #212121;
-}
-
-.tbl {
-  font-size: 14px;
-  line-height: 18px;
-}
-
-.row_bold {
-  font-weight: bold;
-}
-```
-
-## Confirmed cases of coronavirus in Trafford
+<main>
+<h1>Confirmed cases of coronavirus in Trafford</h1>
 
 <br />
 <div class="container-fluid">
@@ -259,8 +234,7 @@ leaflet(data = local_cases, width = "100%", options = leafletOptions(zoomControl
   addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2021)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
   addPolygons(fillColor = "transparent", weight = 1, color = "#757575", opacity = 1) %>% 
     addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 0.7, weight = 1, color = "#FFFFFF", opacity = 1) %>%
-    addPolygons(fillColor = "#E7E7E7", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE)) %>%
-  onRender("function(el, t) {var myMap = this;myMap._container.style['background'] = '#ffffff';}", paste0("function(el, x) {$('head').append(","\'<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\'",");}"))
+    addPolygons(fillColor = "#E7E7E7", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE))
 
 div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank")))
 ```
@@ -414,3 +388,4 @@ div(class = "div",
 </div>
 </div>
 </div>
+</main>
