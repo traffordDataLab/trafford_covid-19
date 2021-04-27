@@ -141,7 +141,7 @@ hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType
 
 <main>
 <h1>Confirmed cases of coronavirus in Trafford</h1>
-
+<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a></p>
 <br />
 <div class="container-fluid">
 <div class="row">
@@ -175,7 +175,7 @@ ggplot() +
         axis.text.y = element_text(face = "bold"),
         axis.ticks.x = element_line(colour = "#333333", size = 0.5))
 
-    div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+    div(class = "caption", p("Source: Public Health England"))
 ```
 </div>
   
@@ -204,7 +204,7 @@ ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
         axis.text.y = element_text(face = "bold"),
         axis.ticks.x = element_line(colour = "#333333", size = 0.5))
 
-    div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+    div(class = "caption", p("Source: Public Health England"))
 ```
 </div>
 </div>
@@ -231,7 +231,7 @@ leaflet(data = local_cases, width = "100%", options = leafletOptions(zoomControl
     addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 0.7, weight = 1, color = "#FFFFFF", opacity = 1) %>%
     addPolygons(fillColor = "#E7E7E7", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE))
 
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus-staging.data.gov.uk/cases', target = "_blank")))
+div(class = "caption", p("Source: Public Health England"))
 ```
 </div>
 
@@ -266,7 +266,7 @@ ggplot(age_specific_cases, aes(x = date, y = rolling_average, colour = ageband))
         axis.ticks.x = element_line(colour = "#333333", size = 0.5)) +
   coord_cartesian(clip = "off") 
 
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+div(class = "caption", p("Source: Public Health England"))
 ```
 </div>
 </div>
@@ -296,7 +296,7 @@ if (!is.null(positivity_rate)) {
           axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
           axis.ticks.x = element_line(colour = "#333333", size = 0.5)))
   
-  div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+  div(class = "caption", p("Source: Public Health England"))
 } else {
   div(paste("Data currently unavailable"))
 }
@@ -332,7 +332,7 @@ ggplot() +
         axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
         axis.ticks.x = element_line(colour = "#333333", size = 0.5))
 
-div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+div(class = "caption", p("Source: Public Health England"))
 ```
 </div>
 </div>
@@ -385,7 +385,7 @@ div(class = "div",
         div(class = "title", "Case rate per 100,000 population"),
         "Greater Manchester"),
     tbl,
-    div(class = "caption", p("Source: ", a("Public Health England", href = 'https://coronavirus.data.gov.uk/', target = "_blank")))
+    div(class = "caption", p("Source: Public Health England"))
     )
 ```
 </div>
