@@ -146,8 +146,8 @@ hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType
 <div class="container-fluid">
 <div class="row">
 <div class = "col-sm-6">
-```{r, dev = 'svg'}
-# Daily confirmed cases
+```{r, dev = 'svg', fig.alt = str_c(slice_max(rolling_cases, order_by = date)$new_cases, ' confirmed cases on ', format(max(rolling_cases$date), '%d %B'))}
+# Daily confirmed cases (value for the plot img's alt attribute is the latest number of cases)
 rolling_cases <- cases %>% 
   filter(area_name == "Trafford", date <= max(date)-days(2)) %>% 
   mutate(ma_cases = rollmean(new_cases, 7, align = "center", fill = NA)) 
@@ -180,8 +180,8 @@ ggplot() +
 </div>
   
 <div class = "col-sm-6">
-```{r, dev = 'svg'}
-# Cumulative cases
+```{r, dev = 'svg', fig.alt = str_c(slice_max(total_cases, order_by = date)$cum_cases, ' total confirmed cases up to ', format(max(total_cases$date), '%d %B'))}
+# Cumulative cases (value for the plot img's alt attribute is the latest total number of cases)
 total_cases <- cases %>% 
   filter(area_name == "Trafford", date <= max(date)-days(2)) %>% 
   arrange(date) %>% 
@@ -236,7 +236,15 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 </div>
 
 <div class = "col-sm-6">
-```{r, dev = "svg"}
+```{r, dev = "svg", fig.alt = str_c(alt_text_age_bands$ageband[1], ': ', alt_text_age_bands$roll_avg_rounded[1], ', ', alt_text_age_bands$ageband[2], ': ', alt_text_age_bands$roll_avg_rounded[2], ', ', alt_text_age_bands$ageband[3], ': ', alt_text_age_bands$roll_avg_rounded[3], ', ', alt_text_age_bands$ageband[4], ': ', alt_text_age_bands$roll_avg_rounded[4], ', ', alt_text_age_bands$ageband[5], ': ', alt_text_age_bands$roll_avg_rounded[5], ', ', alt_text_age_bands$ageband[6], ': ', alt_text_age_bands$roll_avg_rounded[6], ' (7 day avg per 100K) at ', format(alt_text_age_bands$date[1], '%d %B'))}
+###--------- This is for the plot img's alt text - simplifies the code in the chunk header above
+# get the cases rates for the latest date and round them to 1dp
+alt_text_age_bands <- age_specific_cases %>%
+  filter(date == max(date)) %>%
+  mutate(roll_avg_rounded = round(rolling_average, 1)) %>%
+  select(date, ageband, roll_avg_rounded)
+###---------
+
 # Cases by age
 div(class = "subtitle",
     div(class = "title", "Age-specific case rates per 100,000"),
@@ -265,7 +273,7 @@ div(class = "caption", p("Source: ", a("Public Health England", href = 'https://
 
 <div class = "row">
 <div class = "col-sm-6">
-```{r, dev = "svg"}
+```{r, dev = "svg", fig.alt = if (!is.null(positivity_rate)) { str_c(slice_max(positivity_rate, order_by = date)$uniqueCasePositivityBySpecimenDateRollingSum, '% of tests positive (7 day average) as at ', format(max(positivity_rate$date), '%d %B')) } }
 # Positivity rate
 div(class = "subtitle",
     div(class = "title", "Test positivity rate"),
@@ -296,7 +304,16 @@ if (!is.null(positivity_rate)) {
 </div>
 
 <div class = "col-sm-6">
-```{r, dev = "svg"}
+```{r, dev = "svg", fig.alt = str_c('Approximately ', alt_text_hospital_cases$ma_cases_rounded, ' patients (7-day rolling average) as at ', format(max(alt_text_hospital_cases$date), '%d %B'))}
+###--------- This is for the plot img's alt text - simplifies the code in the chunk header above
+# select the latest date that we have an average case number and then round to 0dp
+alt_text_hospital_cases <- hospital_cases %>%
+  drop_na() %>%
+  filter(date == max(date)) %>%
+  mutate(ma_cases_rounded = round(ma_cases, 0)) %>%
+  select(date, ma_cases_rounded)
+###---------
+
 # Hospital patients
 div(class = "subtitle",
     div(class = "title", "COVID-19 patients in hospital"),
@@ -375,3 +392,18 @@ div(class = "div",
 </div>
 </div>
 </main>
+
+<script>
+  // Add language attribute to page - usually the YAML parameter does this but it's not working.
+  var elHtml = document.getElementsByTagName('html')[0];
+  if (elHtml !== null) elHtml.setAttribute('lang', 'en-GB');
+  
+  // fig.alt in r chunks generates title attributes with the same alt content - bad for screen readers
+  var arrImg = document.getElementsByTagName('img');
+  for (var i = 0; i < arrImg.length; i++) {
+    if (arrImg[i].hasAttribute('title')) arrImg[i].removeAttribute('title');
+    
+    // R markdown loading image - add alt attribute set to empty string
+    if (arrImg[i].src.indexOf('rmd_loader.gif') > 0) arrImg[i].setAttribute('alt', '');
+  }
+</script>
