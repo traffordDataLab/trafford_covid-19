@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 library(tidyverse) ; library(httr) ; library(readxl) ; library(jsonlite) ; library(lubridate) ; library(RcppRoll) ; library(reactable) ; library(zoo) ; library(scales) ; library(shiny) ; library(ggrepel) ; library(sf) ; library(leaflet) ; library(htmlwidgets) ; library(htmltools) ; library(ggsci)
 
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
 
 #--- Load static local files 
 
@@ -356,7 +358,7 @@ if (nrow(msoa_cases) > 0) {
   mapCases <- div(p("Sorry, data currently unavailable. Please refresh or check back later."))
 }
 
-div(class = "div",
+div(
     div(class = "subtitle",
         div(class = "title", "Confirmed cases by Middle layer Super Output Area"),
         "Trafford, week ending", msoa_latest_date),
