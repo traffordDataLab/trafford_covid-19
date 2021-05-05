@@ -54,16 +54,20 @@ weekly_incidence <- tibble()
 
 try(
     {
-      cases <- read_csv("https://coronavirus.data.gov.uk/downloads/csv/coronavirus-cases_latest.csv")
+      cases_ltla <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&format=csv")
+      
+      cases_nation <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv")
+      
+      cases <- bind_rows(cases_ltla, cases_nation)
       
       cases <- cases %>% 
-        filter(`Area type` %in% c("nation", "ltla"),
-               `Area name` %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale", "Salford", "Stockport", "Tameside", "Trafford", "Wigan", "England")) %>% 
-        mutate(date = as.Date(`Specimen date`, format = "%Y-%m-%d")) %>% 
+        filter(`areaType` %in% c("nation", "ltla"),
+               `areaName` %in% c("Bolton", "Bury", "Manchester", "Oldham", "Rochdale", "Salford", "Stockport", "Tameside", "Trafford", "Wigan", "England")) %>% 
+        mutate(date = as.Date(`date`, format = "%Y-%m-%d")) %>% 
         select(date,
-               area_code = `Area code`,
-               area_name = `Area name`,
-               new_cases = `Daily lab-confirmed cases`) %>% 
+               area_code = `areaCode`,
+               area_name = `areaName`,
+               new_cases = `newCasesBySpecimenDate`) %>% 
         arrange(date) %>% 
         group_by(area_code, area_name) %>%
         complete(date = seq.Date(min(date), max(date), by = "day")) %>% 
