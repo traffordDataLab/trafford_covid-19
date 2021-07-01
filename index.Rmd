@@ -275,7 +275,7 @@ try(
 
 <main>
 <h1>Confirmed cases of coronavirus in Trafford</h1>
-<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a></p>
+<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2020" target="_blank">mid-2020</a> used for case rates (<a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2019" target="_blank">mid-2019</a> for Middle layer Super Output Area) published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
 <br />
 <div class="container-fluid">
 <div class="row">

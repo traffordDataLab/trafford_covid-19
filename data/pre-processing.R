@@ -1,6 +1,6 @@
 library(tidyverse) ; library(httr) ; library(readxl) ; library(sf)
 
-# Mid-2019 population estimates for local authorities in England
+# Mid-2020 population estimates for local authorities in England
 
 # Source: Nomis / ONS
 # URL: https://www.nomisweb.co.uk/datasets/pestsyoala
@@ -17,16 +17,17 @@ ltla_population <- read_csv("http://www.nomisweb.co.uk/api/v01/dataset/NM_2002_1
   group_by(area_code) %>% 
   summarise(population = sum(population)) 
 
-# Mid-2019 population estimates for England and GM
+# Mid-2020 population estimates for England and GM
 
 # Source: ONS
 # URL: https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationestimatesforukenglandandwalesscotlandandnorthernireland
 # Licence: OGL 3.0
+# NOTE: you will likely have to amend the "sheet" and "skip" values below as they can change between publications
 
 tmp <- tempfile(fileext = ".xls")
-GET(url = "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2019april2020localauthoritydistrictcodes/ukmidyearestimates20192020ladcodes.xls",
+GET(url = "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fpopulationandmigration%2fpopulationestimates%2fdatasets%2fpopulationestimatesforukenglandandwalesscotlandandnorthernireland%2fmid2020/ukpopestimatesmid2020on2021geography.xls",##
     write_disk(tmp))
-ca_country_population <- read_xls(tmp, sheet = 6, skip = 4) %>% 
+ca_country_population <- read_xls(tmp, sheet = 7, skip = 7) %>% 
   filter(Name %in% c("Greater Manchester (Met County)", "ENGLAND")) %>% 
   select(area_code = Code, population = `All ages`)
 
@@ -75,7 +76,7 @@ left_join(msoa, population, by = "msoa11cd") %>%
   select(msoa11cd, msoa11nm, population, lon, lat) %>% 
   st_write("msoa.geojson")
 
-# Mid-2019 population estimates for Trafford
+# Mid-2020 population estimates for Trafford
 # Source: Nomis
 # URL: https://www.nomisweb.co.uk/datasets/pestsyoala
 
