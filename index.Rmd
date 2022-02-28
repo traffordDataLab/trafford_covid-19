@@ -151,7 +151,7 @@ try(
                               str_c(msoa11hclnm, ":<br />Data suppressed") %>% map(HTML),
                               str_c(msoa11hclnm, ":<br />", n, " cases, ", rate, " per 100,000") %>% map(HTML)))
       
-      msoa_latest_date <- format(msoa_latest_date, '%d %B')
+      msoa_latest_date <- format(msoa_latest_date, '%d %B %Y')
     },
     silent = TRUE
 )
@@ -238,7 +238,7 @@ try(
         alt_positivity_rate <- str_c(
           slice_max(positivity_rate,
                     order_by = date)$uniqueCasePositivityBySpecimenDateRollingSum, 
-                    '% of tests positive (7 day average) as at ', 
+                    '% of people testing positive (rolling 7-day period) as at ', 
                     format(max(positivity_rate$date), '%d %B'))
       }
     },
@@ -293,11 +293,11 @@ if (nrow(rolling_cases) > 0) {
     geom_col(data = rolling_cases, aes(x = date, y = new_cases), fill = "#39809E", alpha = 0.6) +
     geom_line(data = rolling_cases, aes(x = date, y = ma_cases, colour = "ma_cases"), size = 1) +
     scale_colour_manual(values = c("ma_cases" = "#39809E"), name = NULL, labels = "7-day rolling average") +
-    scale_x_date(breaks = c(min(rolling_cases$date), median(rolling_cases$date), max(rolling_cases$date)), date_labels = "%d-%b") +
+    scale_x_date(breaks = c(min(rolling_cases$date), median(rolling_cases$date), max(rolling_cases$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005), position = "right") +
     labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
     theme_minimal(base_size = 20, base_family = "Lato") +
-    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.75, "cm"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
           legend.position = "top", 
@@ -326,11 +326,11 @@ if (nrow(total_cases) > 0) {
   print(ggplot(data = total_cases, aes(x = date, y = cum_cases, group = 1)) +
     geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
     geom_line(colour = "#39809E", size = 1.2) +
-    scale_x_date(breaks = c(min(total_cases$date), median(total_cases$date), max(total_cases$date)), date_labels = "%d-%b") +
+    scale_x_date(breaks = c(min(total_cases$date), median(total_cases$date), max(total_cases$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005), labels = comma, position = "right") +
     labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
     theme_minimal(base_size = 20, base_family = "Lato") +
-    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.75, "cm"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
           axis.text.y = element_text(face = "bold"),
@@ -386,7 +386,7 @@ if (nrow(age_specific_cases) > 0) {
     geom_line(size = 1, show.legend = FALSE) +
     geom_text_repel(aes(x = max(date)+1, label = label), fontface = "bold", direction = "y", hjust = 0, segment.color = NA, show.legend = FALSE) +
     scale_color_startrek() +
-    scale_x_date(breaks = c(min(age_specific_cases$date), median(age_specific_cases$date), max(age_specific_cases$date)), date_labels = "%d %b") +
+    scale_x_date(breaks = c(min(age_specific_cases$date), median(age_specific_cases$date), max(age_specific_cases$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005)) +
     labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
     theme_minimal(base_size = 20, base_family = "Lato") +
@@ -411,7 +411,7 @@ if (nrow(age_specific_cases) > 0) {
 # Positivity rate
 div(class = "subtitle",
     div(class = "title", "Test positivity rate"),
-    paste("Trafford, PCR tests, last 7 days"))
+    paste("Trafford, PCR tests by specimen date, rolling 7-day periods"))
 
 if (nrow(positivity_rate) > 0) {
   # Need to explicitly print() the ggplot due to being within the if-block
@@ -420,11 +420,11 @@ if (nrow(positivity_rate) > 0) {
     geom_line(data = positivity_rate, 
               aes(date, uniqueCasePositivityBySpecimenDateRollingSum, group = 1),
               colour = "#756bb1", size = 1) +
-    scale_x_date(breaks = c(min(positivity_rate$date), median(positivity_rate$date), max(positivity_rate$date)), date_labels = "%d-%b") +
+    scale_x_date(breaks = c(min(positivity_rate$date), median(positivity_rate$date), max(positivity_rate$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005), labels = function(x){paste0(x, "%")}, position = "right") +
-    labs(x = "Specimen date", y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
+    labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
     theme_minimal(base_size = 20, base_family = "Lato") +
-    theme(plot.margin = unit(rep(0.5,4), "cm"),
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.75, "cm"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
           axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
@@ -449,11 +449,11 @@ if (nrow(hospital_cases) > 0) {
   print(ggplot() +
     geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
     geom_line(data = hospital_cases, aes(x = date, y = ma_cases), size = 1, colour = "#FAAB18") +
-    scale_x_date(breaks = c(min(hospital_cases$date), median(hospital_cases$date), max(hospital_cases$date)), date_labels = "%d-%b") +
+    scale_x_date(breaks = c(min(hospital_cases$date), median(hospital_cases$date), max(hospital_cases$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005), position = "right") +
     labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
     theme_minimal(base_size = 20, base_family = "Lato") +
-    theme(plot.margin = unit(rep(0.5,4), "cm"),
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.75, "cm"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
           axis.title.x = element_text(size = 10, face = "bold", hjust = 0, margin = margin(t = 10)),
