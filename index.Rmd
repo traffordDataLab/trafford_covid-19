@@ -21,10 +21,10 @@ options(dplyr.summarise.inform = FALSE)
 
 #--- Load static local files 
 
-# Mid-2019 population estimates for local authorities in England
+# Mid-2020 population estimates for local authorities in England
 population <- read_csv("data/population.csv")
 
-# Mid-2019 population estimates for Trafford
+# Mid-2020 population estimates for Trafford
 trafford_population <- read_csv("data/trafford_population.csv")
 
 # Trafford local authority boundary
@@ -158,20 +158,17 @@ try(
 
 # Cases by age
 # Source: Public Health England
-# URL: https://coronavirus.data.gov.uk/about-data#cases-by-age
+# URL: https://coronavirus.data.gov.uk/details/download
 age_specific_cases <- tibble()
 alt_age_cases <- NULL
 
 try(
     {
-      age_specific_cases <- read_csv("https://coronavirus.data.gov.uk/downloads/demographic/cases/specimenDate_ageDemographic-unstacked.csv") %>% 
-        filter(areaType == "ltla", areaName == "Trafford") %>% 
-        select(date, starts_with("newCasesBySpecimenDate-")) %>% 
-        pivot_longer(cols = -date, names_to = "ageband", values_to = "n") %>% 
-        filter(!ageband %in% c("newCasesBySpecimenDate-0_59", "newCasesBySpecimenDate-60+", "newCasesBySpecimenDate-unassigned")) %>% 
-        mutate(ageband = str_remove_all(ageband, "newCasesBySpecimenDate-"),
-               ageband = case_when(
-                 ageband %in% c("0_4", "5_9", "10_14") ~ "0-14",
+      age_specific_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&areaCode=E08000009&metric=newCasesBySpecimenDateAgeDemographics&format=csv") %>% 
+        filter(!age %in% c("00_59", "60+", "unassigned")) %>%
+        rename(ageband = age) %>%
+        mutate(ageband = case_when(
+                 ageband %in% c("00_04", "05_09", "10_14") ~ "0-14",
                  ageband %in% c("15_19", "20_24", "25_29") ~ "15-29",
                  ageband %in% c("30_34", "35_39", "40_44") ~ "30-44",
                  ageband %in% c("45_49", "50_54", "55_59") ~ "45-59",
@@ -179,10 +176,10 @@ try(
                  ageband %in% c("75_79", "80_84", "85_89", "90+") ~ "75+"
                  )) %>% 
         group_by(date, ageband) %>% 
-        summarise(n = sum(n)) %>% 
+        summarise(cases = sum(cases)) %>% 
         ungroup() %>% 
         left_join(trafford_population, by = "ageband") %>% 
-        mutate(rate = round(n/population*100000,1)) %>% 
+        mutate(rate = round(cases/population*100000,1)) %>% 
         group_by(ageband) %>% 
         arrange(date) %>% 
         mutate(rolling_average = rollmean(rate, 7, align = "right", fill = NA)) %>% 
@@ -292,7 +289,7 @@ if (nrow(rolling_cases) > 0) {
     geom_hline(yintercept = 0, size = 0.3, colour = "#333333") +
     geom_col(data = rolling_cases, aes(x = date, y = new_cases), fill = "#39809E", alpha = 0.6) +
     geom_line(data = rolling_cases, aes(x = date, y = ma_cases, colour = "ma_cases"), size = 1) +
-    scale_colour_manual(values = c("ma_cases" = "#39809E"), name = NULL, labels = "7-day rolling average") +
+    scale_colour_manual(values = c("ma_cases" = "#39809E"), name = NULL, labels = "rolling 7-day average") +
     scale_x_date(breaks = c(min(rolling_cases$date), median(rolling_cases$date), max(rolling_cases$date)), date_labels = "%d %b '%y") +
     scale_y_continuous(expand = c(0.005, 0.005), position = "right") +
     labs(x = NULL, y = NULL, title = NULL, subtitle = NULL, caption = NULL) +
@@ -377,7 +374,7 @@ div(
 # Cases by age (value for the plot img's alt attribute is the latest rates for each age band)
 div(class = "subtitle",
     div(class = "title", "Age-specific case rates per 100,000"),
-    paste("Trafford, 7-day moving average"))
+    paste("Trafford, rolling 7-day average"))
 
 if (nrow(age_specific_cases) > 0) {
   # Need to explicitly print() the ggplot due to being within the if-block
@@ -442,7 +439,7 @@ if (nrow(positivity_rate) > 0) {
 # Hospital patients
 div(class = "subtitle",
     div(class = "title", "COVID-19 patients in hospital"),
-    paste("Manchester University NHS Foundation Trust, 7-day rolling average"))
+    paste("Manchester University NHS Foundation Trust, rolling 7-day average"))
 
 if (nrow(hospital_cases) > 0) {
   # Need to explicitly print() the ggplot due to being within the if-block
