@@ -496,7 +496,7 @@ if (nrow(weekly_incidence) > 0) {
 div(class = "div",
     div(class = "subtitle",
         div(class = "title", "Case rate per 100,000 population"),
-        "Greater Manchester"),
+        paste0("Greater Manchester, ", format(max(cases$date), '%Y'))),
     tbl,
     div(class = "caption", p("Source: Public Health England"))
     )
