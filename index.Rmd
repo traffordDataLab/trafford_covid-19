@@ -28,7 +28,7 @@ population <- read_csv("data/population.csv")
 trafford_population <- read_csv("data/trafford_population.csv")
 
 # Trafford local authority boundary
-la <- st_read("data/la.geojson")
+#la <- st_read("data/la.geojson")
 
 # MSOAs within Trafford
 msoa <- st_read("data/msoa.geojson")
@@ -149,7 +149,8 @@ try(
       msoa_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
         mutate(popup = ifelse(n == 0,
                               str_c(msoa11hclnm, ":<br />Data suppressed") %>% map(HTML),
-                              str_c(msoa11hclnm, ":<br />", n, " cases, ", rate, " per 100,000") %>% map(HTML)))
+                              str_c(msoa11hclnm, ":<br />", n, " cases, ", rate, " per 100,000") %>%
+                              map(HTML)))
       
       msoa_latest_date <- format(msoa_latest_date, '%d %B %Y')
     },
@@ -272,7 +273,7 @@ try(
 
 <main>
 <h1>Confirmed cases of coronavirus in Trafford</h1>
-<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2020" target="_blank">mid-2020</a> used for case rates (<a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2019" target="_blank">mid-2019</a> for Middle layer Super Output Area) published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
+<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2020" target="_blank">mid-2020</a> published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
 <br />
 <div class="container-fluid">
 <div class="row">
@@ -350,7 +351,7 @@ if (nrow(msoa_cases) > 0) {
   
   mapCases <- leaflet(data = msoa_cases, width = "100%", options = leafletOptions(zoomControl = FALSE)) %>%
     #setMaxBounds(bbox[1], bbox[2], bbox[3], bbox[4]) %>% # Commented out as temporary fix for issue #1
-    addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2021)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
+    addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2022)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
     addPolygons(fillColor = "transparent", weight = 1, color = "#757575", opacity = 1) %>% 
     addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 0.7, weight = 1, color = "#FFFFFF", opacity = 1) %>%
     addPolygons(fillColor = "#E7E7E7", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE))
