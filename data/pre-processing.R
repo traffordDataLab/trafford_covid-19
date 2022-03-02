@@ -50,20 +50,20 @@ st_read("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Loca
 # URL: https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-boundaries-ew-bgc
 # Licence: OGL 3.0
 
-msoa <- st_read("https://opendata.arcgis.com/datasets/1e6f162967de4f3da92040761e8464d8_0.geojson") %>% 
+msoa <- st_read("https://opendata.arcgis.com/datasets/abfccdf1071c43dd981a49eb7da13d2b_0.geojson") %>%
   filter(str_detect(MSOA11NM, "Trafford")) %>%
-  # correct invalid polygon geometry
-  st_buffer(dist = 0) %>% 
+  # correct invalid polygon geometry (SOURCE CHANGE FOR GEOGRAPHY SEEMS TO MAKE THIS REDUNDANT 2022-03-02)
+  #st_buffer(dist = 0) %>% 
   mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
          lat = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>% 
   select(msoa11cd = MSOA11CD, msoa11nm = MSOA11NM, lon, lat)
 
-# Dissolve into local authority boundary
+# Dissolve into local authority boundary (THIS NOW SEEMS REDUNDANT 2022-03-02)
 msoa %>% 
   st_union() %>% 
   st_write("la.geojson")
 
-# Mid-2019 population estimates by MSOA
+# Mid-2020 population estimates by MSOA
 
 # Source: Nomis / ONS
 # URL: https://www.nomisweb.co.uk/datasets/pestsyoaoa
