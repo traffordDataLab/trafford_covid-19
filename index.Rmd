@@ -27,9 +27,6 @@ population <- read_csv("data/population.csv")
 # Mid-2020 population estimates for Trafford
 trafford_population <- read_csv("data/trafford_population.csv")
 
-# Trafford local authority boundary
-#la <- st_read("data/la.geojson")
-
 # MSOAs within Trafford
 msoa <- st_read("data/msoa.geojson")
 
@@ -132,7 +129,7 @@ try(
       # NOTE: not all MSOAs have data due to low number suppression - so we'll join to msoa_lookup for those.
       msoa_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=msoa&areaCode=E08000009&metric=newCasesBySpecimenDateRollingSum&metric=newCasesBySpecimenDateRollingRate&format=csv") %>% 
         filter(date == max(date)) %>% # we only want the latest data
-        select(msoa11cd = areaCode, msoa11hclnm = areaName, date, n = newCasesBySpecimenDateRollingSum, rate = newCasesBySpecimenDateRollingRate) %>%
+        select(area_code = areaCode, area_name_hcl = areaName, date, n = newCasesBySpecimenDateRollingSum, rate = newCasesBySpecimenDateRollingRate) %>%
         drop_na() %>%                 # sometimes the API returns rows with no data, so remove them
         distinct()                    # and sometimes it returns duplicate data, so remove any of those
       
@@ -140,16 +137,16 @@ try(
       msoa_latest_date <- msoa_cases$date[1]
       
       # Join msoa_cases to the msoa_lookup dataframe to get any suppressed MSOAs added to the dataset. The replacement of NA with 0 for the number of cases and rate is used in the Leaflet map to write "data suppressed" in the MSOA label. Need to replace NA in date to prevent any errors later on when attempting to use the date 
-      msoa_cases <- left_join(msoa_lookup, msoa_cases, by = c("msoa11cd","msoa11hclnm")) %>%
+      msoa_cases <- left_join(msoa_lookup, msoa_cases, by = c("area_code","area_name_hcl")) %>%
         mutate(n = replace_na(n, 0),
                rate = replace_na(rate, 0),
                date = replace_na(date, msoa_latest_date))
       
       # Final join to create the dataset for the "MSOA Cases" Leaflet map
-      msoa_cases <- left_join(msoa, msoa_cases, by = "msoa11cd") %>% 
+      msoa_cases <- left_join(msoa, msoa_cases, by = "area_code") %>% 
         mutate(popup = ifelse(n == 0,
-                              str_c(msoa11hclnm, ":<br />Data suppressed") %>% map(HTML),
-                              str_c(msoa11hclnm, ":<br />", n, " cases, ", rate, " per 100,000") %>%
+                              str_c(area_name_hcl, ":<br />Data suppressed") %>% map(HTML),
+                              str_c(area_name_hcl, ":<br />", n, " cases, ", rate, " per 100,000") %>%
                               map(HTML)))
       
       msoa_latest_date <- format(msoa_latest_date, '%d %B %Y')
@@ -273,7 +270,7 @@ try(
 
 <main>
 <h1>Confirmed cases of coronavirus in Trafford</h1>
-<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2020" target="_blank">mid-2020</a> published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
+<p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/populationestimatesforenglandandwales/mid2022" target="_blank">mid-2022</a> (Local Authority) and <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/populationandhouseholdestimatesenglandandwales/census2021unroundeddata" target="_blank">Census 2021</a> (Middle layer Super Output Area) published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
 <br />
 <div class="container-fluid">
 <div class="row">
@@ -351,7 +348,7 @@ if (nrow(msoa_cases) > 0) {
   
   mapCases <- leaflet(data = msoa_cases, width = "100%", options = leafletOptions(zoomControl = FALSE)) %>%
     #setMaxBounds(bbox[1], bbox[2], bbox[3], bbox[4]) %>% # Commented out as temporary fix for issue #1
-    addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2022)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
+    addTiles(urlTemplate = "", attribution = '<a href="https://www.ons.gov.uk/methodology/geography/licences">Contains OS data © Crown copyright and database right (2021)</a>', options = tileOptions(minZoom = 11, maxZoom = 11)) %>%
     addPolygons(fillColor = "transparent", weight = 1, color = "#757575", opacity = 1) %>% 
     addCircleMarkers(lng = ~lon, lat = ~lat, radius = ~sqrt(n), fillColor = "#39809E", fillOpacity = 0.7, weight = 1, color = "#FFFFFF", opacity = 1) %>%
     addPolygons(fillColor = "#E7E7E7", stroke = TRUE, weight = 1, color = "transparent", opacity = 1, label = ~popup, labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "bottom", offset = c(0, 25)), highlight = highlightOptions(fillColor = "#39809E", fillOpacity = 0.2, stroke = TRUE, color = "#39809E", weight = 1, bringToFront = TRUE))
