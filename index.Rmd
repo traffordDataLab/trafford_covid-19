@@ -51,6 +51,15 @@ weekly_incidence <- tibble()
 
 try(
     {
+      # NOTE REGARDING CORONAVIRUS DASHBOARD DECOMMISSIONING:
+      #   - The original PHE coronavirus dashboard at https://coronavirus.data.gov.uk is being replaced by https://ukhsa-dashboard.data.gov.uk/topics/covid-19
+      #   - Final data update on the original coronavirus dashboard took place on 2023-12-14
+      #   - An archive of the data up to 2023-12-13 produced by the API call below was created on 2023-12-19 called "data/phe_coronavirus_dashboard_api_data/cases_ltla.csv" and "data/phe_coronavirus_dashboard_api_data/cases_nation.csv"
+      #   - In the event of the original API calls no longer working, replace with the following until we can obtain data from the new dashboard API:
+        
+      # cases_ltla <- read_csv("data/phe_coronavirus_dashboard_api_data/cases_ltla.csv")
+      # cases_nation <- read_csv("data/phe_coronavirus_dashboard_api_data/cases_nation.csv")
+        
       cases_ltla <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&format=csv")
       
       cases_nation <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv")
@@ -126,6 +135,14 @@ msoa_cases <- tibble()
 
 try(
     {
+      # NOTE REGARDING CORONAVIRUS DASHBOARD DECOMMISSIONING:
+      #   - The original PHE coronavirus dashboard at https://coronavirus.data.gov.uk is being replaced by https://ukhsa-dashboard.data.gov.uk/topics/covid-19
+      #   - Final data update on the original coronavirus dashboard took place on 2023-12-14
+      #   - An archive of the data up to 2023-12-09 produced by the API call below was created on 2023-12-19 called "data/phe_coronavirus_dashboard_api_data/msoa_cases.csv"
+      #   - In the event of the original API call no longer working, replace with the following until we can obtain data from the new dashboard API:
+        
+      # msoa_cases <- read_csv("data/phe_coronavirus_dashboard_api_data/msoa_cases.csv") %>%
+        
       # NOTE: not all MSOAs have data due to low number suppression - so we'll join to msoa_lookup for those.
       msoa_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=msoa&areaCode=E08000009&metric=newCasesBySpecimenDateRollingSum&metric=newCasesBySpecimenDateRollingRate&format=csv") %>% 
         filter(date == max(date)) %>% # we only want the latest data
@@ -162,6 +179,14 @@ alt_age_cases <- NULL
 
 try(
     {
+      # NOTE REGARDING CORONAVIRUS DASHBOARD DECOMMISSIONING:
+      #   - The original PHE coronavirus dashboard at https://coronavirus.data.gov.uk is being replaced by https://ukhsa-dashboard.data.gov.uk/topics/covid-19
+      #   - Final data update on the original coronavirus dashboard took place on 2023-12-14
+      #   - An archive of the data up to 2023-12-09 produced by the API call below was created on 2023-12-19 called "data/phe_coronavirus_dashboard_api_data/age_specific_cases.csv"
+      #   - In the event of the original API call no longer working, replace with the following until we can obtain data from the new dashboard API:
+        
+      # age_specific_cases <- read_csv("data/phe_coronavirus_dashboard_api_data/age_specific_cases.csv") %>%    
+        
       age_specific_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&areaCode=E08000009&metric=newCasesBySpecimenDateAgeDemographics&format=csv") %>% 
         filter(!age %in% c("00_59", "60+", "unassigned")) %>%
         rename(ageband = age) %>%
@@ -215,6 +240,14 @@ alt_positivity_rate <- NULL
 
 try(
     {
+      # NOTE REGARDING CORONAVIRUS DASHBOARD DECOMMISSIONING:
+      #   - The original PHE coronavirus dashboard at https://coronavirus.data.gov.uk is being replaced by https://ukhsa-dashboard.data.gov.uk/topics/covid-19
+      #   - Final data update on the original coronavirus dashboard took place on 2023-12-14
+      #   - An archive of the data up to 2023-12-04 produced by the API call below was created on 2023-12-19 called "data/phe_coronavirus_dashboard_api_data/positivity_rate.csv"
+      #   - In the event of the original API call no longer working, comment out the api_response <- GET(... and if (api_response$status_code == 200) {... blocks and replace with the following until we can obtain data from the new dashboard API:
+        
+      # positivity_rate <- read_csv("data/phe_coronavirus_dashboard_api_data/positivity_rate.csv")
+        
       api_response <- GET(
         # Call the API and attempt to get the positivity rate data
         url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=ltla;areaName=trafford&structure={"date":"date","uniqueCasePositivityBySpecimenDateRollingSum":"uniqueCasePositivityBySpecimenDateRollingSum"}',
@@ -248,6 +281,14 @@ alt_hospital_cases <- NULL
 
 try(
     {
+      # NOTE REGARDING CORONAVIRUS DASHBOARD DECOMMISSIONING:
+      #   - The original PHE coronavirus dashboard at https://coronavirus.data.gov.uk is being replaced by https://ukhsa-dashboard.data.gov.uk/topics/covid-19
+      #   - Final data update on the original coronavirus dashboard took place on 2023-12-14
+      #   - An archive of the data up to 2023-12-08 produced by the API call below was created on 2023-12-19 called "data/phe_coronavirus_dashboard_api_data/hospital_cases.csv"
+      #   - In the event of the original API call no longer working, replace with the following until we can obtain data from the new dashboard API:
+        
+      # hospital_cases <- read_csv("data/phe_coronavirus_dashboard_api_data/hospital_cases.csv") %>%
+
       hospital_cases <- read_csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nhsTrust&areaCode=R0A&metric=hospitalCases&format=csv") %>% 
         arrange(date) %>% 
         mutate(ma_cases = rollmean(hospitalCases, 7, align = "center", fill = NA))
