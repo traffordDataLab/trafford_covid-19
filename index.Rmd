@@ -270,6 +270,11 @@ try(
 
 <main>
 <h1>Confirmed cases of coronavirus in Trafford</h1>
+
+<p class="contentBlock themeBlockLight smallText" style="margin-bottom: 1em;">
+    <span style="font-weight: bold;">PLEASE NOTE:</span> The final data update of the <a href="https://coronavirus.data.gov.uk/details/whats-new/record/3542bdd2-99a1-44dc-8dab-4e787b777085" target="_blank">Coronavirus (COVID-19) dashboard</a> supplying data to this app occurred on 14 December 2023. The dashboard has now been replaced by the <a href="https://ukhsa-dashboard.data.gov.uk/" target="_blank">UKHSA data dashboard</a> which presents the latest available data on respiratory viruses including COVID-19.
+</p>
+
 <p>Source: <a href="https://coronavirus.data.gov.uk/details/download" target="_blank">UK Coronavirus Dashboard</a> developed by <a href="https://www.gov.uk/government/organisations/public-health-england" target="_blank">Public Health England</a>. Population estimates for <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/populationestimatesforenglandandwales/mid2022" target="_blank">mid-2022</a> (Local Authority) and <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/populationandhouseholdestimatesenglandandwales/census2021unroundeddata" target="_blank">Census 2021</a> (Middle layer Super Output Area) published by the <a href="https://www.ons.gov.uk" target="_blank">Office for National Statistics</a>.</p>
 <br />
 <div class="container-fluid">
